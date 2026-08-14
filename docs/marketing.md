@@ -12,7 +12,7 @@ apps/marketing
 ## Run
 
 ```bash
-cd client
+cd ecomm-web-app
 pnpm marketing:dev
 ```
 

@@ -4,9 +4,10 @@ The local gateway uses nginx to route browser traffic to the frontend apps runni
 
 ## Start Apps
 
-Run these from `client/` in separate terminals:
+Run these from the repo root in separate terminals:
 
 ```bash
+pnpm marketing:dev
 pnpm merchant:dev
 pnpm pos:dev
 pnpm storefront:dev
@@ -14,16 +15,10 @@ pnpm storefront:dev
 
 ## Start Gateway
 
-Run this from `client/`:
+Run this from the repo root:
 
 ```bash
-docker compose -f docker-compose.gateway.yml up
-```
-
-From the repository root, use:
-
-```bash
-docker compose -f client/docker-compose.gateway.yml up
+docker compose -f docker-compose.prod.yml up nginx
 ```
 
 ## Routes
@@ -34,7 +29,7 @@ http://localhost/pos      -> POS app on 3001
 http://localhost          -> storefront app on 3002
 ```
 
-Marketing currently runs directly:
+Marketing stays direct:
 
 ```txt
 http://localhost:3003 -> marketing app

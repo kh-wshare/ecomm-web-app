@@ -13,12 +13,12 @@ packages/*
 nginx gateway for frontend routing
 ```
 
-Marketing is included in the frontend workspace. It still needs a production Dockerfile and gateway route decision before it is part of the production compose stack.
+Marketing is included in the frontend workspace and has a dedicated production Dockerfile and direct port exposure.
 
 ## Local Frontend Setup
 
 ```bash
-cd client
+cd ecomm-web-app
 pnpm install
 ```
 
@@ -33,18 +33,19 @@ pnpm storefront:dev
 
 ## Local Gateway
 
-Run merchant, POS, and storefront first:
+Run the frontend apps first:
 
 ```bash
+pnpm marketing:dev
 pnpm merchant:dev
 pnpm pos:dev
 pnpm storefront:dev
 ```
 
-Start the gateway from `client/`:
+Then start the gateway from the repo root:
 
 ```bash
-docker compose -f docker-compose.gateway.yml up
+docker compose -f docker-compose.prod.yml up nginx
 ```
 
 Routes:
@@ -55,7 +56,7 @@ Routes:
 /         -> storefront app
 ```
 
-Marketing currently runs directly:
+Marketing remains direct:
 
 ```txt
 http://localhost:3003

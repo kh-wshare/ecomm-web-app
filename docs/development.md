@@ -3,11 +3,11 @@
 ## Install
 
 ```bash
-cd client
+cd ecomm-web-app
 pnpm install
 ```
 
-The workspace uses Node `26.5.0` from `client/.nvmrc`.
+The workspace uses Node `26.5.0` from `.nvmrc`.
 
 ## Run One App
 
