@@ -48,6 +48,7 @@ type RealtimeEvent = {
 
 type RealtimeStatus = "connecting" | "connected" | "disconnected";
 
+const inFlightRealtimeTokenRequests = new Set<string>();
 const RealtimeContext = createContext<RealtimeStatus>("disconnected");
 
 export function RealtimeProvider({
@@ -119,6 +120,11 @@ function useRealtimeToken(merchantId: string) {
   } | null>(null);
 
   useEffect(() => {
+    if (!merchantId) return;
+    if (tokenState?.merchantId === merchantId) return;
+    if (inFlightRealtimeTokenRequests.has(merchantId)) return;
+
+    inFlightRealtimeTokenRequests.add(merchantId);
     let active = true;
 
     void fetch(SESSION_REALTIME_TOKEN_PATH, {
@@ -139,12 +145,15 @@ function useRealtimeToken(merchantId: string) {
       })
       .catch(() => {
         if (active) setTokenState({ merchantId, token: null });
+      })
+      .finally(() => {
+        inFlightRealtimeTokenRequests.delete(merchantId);
       });
 
     return () => {
       active = false;
     };
-  }, [merchantId]);
+  }, [merchantId, tokenState?.merchantId, tokenState?.token]);
 
   return tokenState?.merchantId === merchantId ? tokenState.token : null;
 }

@@ -28,6 +28,13 @@ export type DashboardInventoryStock = {
     name: string;
     sku: string;
     status: string;
+    imageUrl?: string | null;
+    media?: Array<{
+      id?: string;
+      url: string;
+      type: "IMAGE" | "VIDEO";
+      sortOrder?: number;
+    }>;
   };
   variant: {
     name: string;

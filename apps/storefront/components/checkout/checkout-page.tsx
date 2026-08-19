@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { Button, Radio, RadioGroup } from "@heroui/react";
+import { Button, Modal, Radio, RadioGroup } from "@heroui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import type { PaymentProviderCode } from "@repo/types";
+import _ from 'lodash';
 
+import type { PaymentAction, PaymentProviderCode } from "@repo/types";
 import type { CheckoutContext } from "@/types/checkout";
 import {
   confirmCheckoutSession,
@@ -16,6 +17,7 @@ import {
 import { checkoutStorage } from "@/lib/checkout/checkout-storage";
 import { getErrorMessage } from "@/lib/errors/api-error";
 import { formatCurrency } from "@/lib/formatters/currency";
+import { PaymentQr } from "./payment-qr";
 
 export function CheckoutPage({ sessionId }: { sessionId: string }) {
   const router = useRouter();
@@ -31,11 +33,14 @@ export function CheckoutPage({ sessionId }: { sessionId: string }) {
     enabled: Boolean(sessionId) && Boolean(context?.token),
     refetchOnWindowFocus: true,
   });
+
   const [selectedProviderOverride, setSelectedProviderOverride] =
     useState<PaymentProviderCode | null>(null);
+  const [paymentAction, setPaymentAction] = useState<PaymentAction | null>(null);
+
   const paymentProviders = checkoutQuery.data?.paymentProviders ?? [];
-  const selectedProvider =
-    selectedProviderOverride ?? paymentProviders[0]?.provider ?? null;
+  const selectedProvider = selectedProviderOverride ?? paymentProviders[0]?.provider ?? null;
+
   const paymentMutation = useMutation({
     mutationFn: async () => {
       if (!selectedProvider) {
@@ -53,8 +58,18 @@ export function CheckoutPage({ sessionId }: { sessionId: string }) {
       checkoutStorage.set(sessionId, { ...context!, payment });
       return { confirmed, payment };
     },
-    onSuccess: () => router.push(`/checkout/${sessionId}/success`),
+    onSuccess: (res) => {
+      const action = res.payment?.action as PaymentAction | undefined;
+
+      // If action contains a QR payload or image, display the QR Modal
+      if (action && (action.qrPayload || action.qrImage || action.deepLink)) {
+        setPaymentAction(action);
+      } else {
+        router.push(`/checkout/${sessionId}/success`);
+      }
+    },
   });
+
   const remaining = useCountdown(checkoutQuery.data?.expiresAt);
 
   if (!context) {
@@ -272,7 +287,63 @@ export function CheckoutPage({ sessionId }: { sessionId: string }) {
           </aside>
         </div>
       </div>
+
+      {paymentAction && (
+        <PaymentQrModal
+          action={paymentAction}
+          onClose={() => setPaymentAction(null)}
+          onDone={() => router.push(`/checkout/${sessionId}/success`)}
+        />
+      )}
     </main>
+  );
+}
+
+export function PaymentQrModal({ action, onClose }: { action: PaymentAction, onClose: () => void, onDone: () => void }) {
+  const qrSrc = action.qrImage
+    ? action.qrImage.startsWith("data:") || action.qrImage.startsWith("http")
+      ? action.qrImage
+      : `data:image/png;base64,${action.qrImage}`
+    : null;
+
+  return (
+    <Modal.Backdrop isOpen={_.isNull(action) ? false : true}>
+      <Modal.Container>
+        <Modal.Dialog>
+          <Modal.CloseTrigger onClick={onClose}/>
+          <Modal.Body>
+            {qrSrc && (
+              <div className="flex justify-center">
+                <img
+                  src={qrSrc}
+                  alt="Payment QR Code"
+                  className="h-56 w-56 rounded-xl border border-default-200 object-contain p-2 shadow-inner"
+                />
+              </div>
+            )}
+
+            {action.deepLink && (
+              <Link
+                as="a"
+                href={action.deepLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                color="primary"
+                className="w-full font-semibold"
+              >
+                Open Banking App
+              </Link>
+            )}
+
+            {action.qrPayload && (
+              <div className="flex w-full flex-col items-center gap-3 rounded-2xl border border-default-200 bg-content1 p-4 shadow-sm">
+                <PaymentQr payload={action.qrPayload} />
+              </div>
+            )}
+          </Modal.Body>
+        </Modal.Dialog>
+      </Modal.Container>
+    </Modal.Backdrop>
   );
 }
 

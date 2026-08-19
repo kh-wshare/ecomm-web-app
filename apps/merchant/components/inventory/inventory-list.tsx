@@ -1,6 +1,9 @@
 'use client';
 
 import {
+  AvatarFallback,
+  AvatarImage,
+  AvatarRoot,
   Button,
   Checkbox,
   EmptyState as HeroEmptyState,
@@ -238,7 +241,7 @@ export function InventoryTable() {
                   Sellable
                 </Table.Column>
                 <Table.Column
-                  className="w-[165px] px-4 py-3 font-medium"
+                  className="w-[135px] px-4 py-3 text-right font-medium"
                   id="health"
                 >
                   Health
@@ -354,6 +357,45 @@ export function isLowStock(stock: DashboardInventoryStock) {
 
 export const InventoryList = InventoryTable;
 
+function ProductAvatar({
+  imageUrl,
+  name,
+}: {
+  imageUrl?: string | null;
+  name: string;
+}) {
+  const initial = name.trim().charAt(0).toUpperCase() || 'P';
+
+  return (
+    <AvatarRoot
+      className="size-10 shrink-0 border border-separator bg-accent/10 text-accent"
+      size="sm"
+    >
+      {imageUrl ? (
+        <AvatarImage alt={name} className="object-cover" src={imageUrl} />
+      ) : (
+        <AvatarFallback className="text-sm font-semibold text-accent">
+          {initial}
+        </AvatarFallback>
+      )}
+    </AvatarRoot>
+  );
+}
+
+function getProductImageUrl(
+  mediaOrUrl?:
+    | Array<{ type?: string; url?: string | null }>
+    | string
+    | null,
+) {
+  if (typeof mediaOrUrl === 'string') return mediaOrUrl || null;
+
+  return (
+    mediaOrUrl?.find((item) => item.type === 'IMAGE' || item.type === 'VIDEO')
+      ?.url ?? null
+  );
+}
+
 function NumberCell({ value }: { value: number }) {
   return (
     <Table.Cell className="px-4 py-4 text-right font-medium">
@@ -392,15 +434,23 @@ function InventoryRow({
         </Table.Cell>
       )}
       <Table.Cell className="px-4 py-4">
-        <Link
-          className="font-semibold hover:text-accent"
-          href={`/products/${stock.productId}`}
-        >
-          {stock.product.name}
-        </Link>
-        <p className="mt-1 text-xs text-muted">
-          {stock.variant?.name ?? 'Base product'}
-        </p>
+        <div className="flex min-w-0 items-center gap-3">
+          {/* <ProductAvatar
+            imageUrl={getProductImageUrl(stock.product.media ?? stock.product.imageUrl ?? null)}
+            name={stock.product.name}
+          /> */}
+          <div className="min-w-0">
+            <Link
+              className="block truncate font-semibold hover:text-accent"
+              href={`/products/${stock.productId}`}
+            >
+              {stock.product.name}
+            </Link>
+            <p className="mt-1 text-xs text-muted">
+              {stock.variant?.name ?? 'Base product'}
+            </p>
+          </div>
+        </div>
       </Table.Cell>
       <Table.Cell className="px-4 py-4 font-mono text-xs">
         {stock.variant?.sku ?? stock.product.sku}
@@ -412,7 +462,7 @@ function InventoryRow({
       <Table.Cell className="px-4 py-4 text-right text-base font-bold">
         {stock.onlineSellableStock}
       </Table.Cell>
-      <Table.Cell className="px-4 py-4">
+      <Table.Cell className="px-4 py-4 text-right">
         <StockHealth stock={stock} />
         <p className="mt-1 text-[10px] text-muted">
           {formatDate(stock.updatedAt, { dateStyle: 'medium' }, 'en-US')}

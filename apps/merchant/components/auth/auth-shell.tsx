@@ -2,12 +2,10 @@
 
 import { useEffect } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { useRouter } from "next/navigation";
 
 import { SESSION_ME_PATH } from "@/lib/auth/session";
 
 export function AuthShell({ children }: { children: React.ReactNode }) {
-  const router = useRouter();
   const session = useQuery({
     queryFn: async () => {
       const response = await fetch(SESSION_ME_PATH, {
@@ -21,8 +19,13 @@ export function AuthShell({ children }: { children: React.ReactNode }) {
   });
 
   useEffect(() => {
-    if (session.data) router.replace("/dashboard");
-  }, [router, session.data]);
+    if (!session.data) return;
+
+    const target = "/merchant/dashboard";
+    if (window.location.pathname === target) return;
+
+    window.location.replace(target);
+  }, [session.data]);
 
   if (session.isPending || session.data) {
     return (

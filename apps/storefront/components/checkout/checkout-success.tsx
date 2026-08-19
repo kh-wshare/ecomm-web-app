@@ -5,7 +5,10 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 
 import type { CheckoutContext } from "@/types/checkout";
-import { getCheckoutSession } from "@/lib/checkout/checkout-data";
+import {
+  getCheckoutPaymentStatus,
+  getCheckoutSession,
+} from "@/lib/checkout/checkout-data";
 import { checkoutStorage } from "@/lib/checkout/checkout-storage";
 import { formatCurrency } from "@/lib/formatters/currency";
 
@@ -20,6 +23,15 @@ export function CheckoutSuccess({ sessionId }: { sessionId: string }) {
     queryKey: ["checkout", sessionId],
     queryFn: () => getCheckoutSession(sessionId, context!.token),
     enabled: Boolean(context),
+  });
+  const paymentId = context?.payment?.id;
+  const paymentStatusQuery = useQuery({
+    queryKey: ["checkout-payment-status", paymentId],
+    queryFn: () => getCheckoutPaymentStatus(paymentId!, context!.token),
+    enabled: Boolean(paymentId && context?.token),
+    refetchInterval: (query) =>
+      query.state.data?.status === "PENDING" ? 3_000 : false,
+    refetchIntervalInBackground: true,
   });
 
   if (!context) {
@@ -50,6 +62,7 @@ export function CheckoutSuccess({ sessionId }: { sessionId: string }) {
 
   const checkout = checkoutQuery.data;
   const order = checkout.order;
+    
   if (!order) {
     return (
       <SuccessNotice
@@ -58,7 +71,8 @@ export function CheckoutSuccess({ sessionId }: { sessionId: string }) {
       />
     );
   }
-  const paymentStatus = context.payment?.status ?? "PENDING";
+  const paymentStatus =
+    paymentStatusQuery.data?.status ?? context.payment?.status ?? "PENDING";
 
   return (
     <main className="min-h-dvh bg-zinc-50 px-5 py-10 text-zinc-950 sm:px-8">
@@ -80,6 +94,12 @@ export function CheckoutSuccess({ sessionId }: { sessionId: string }) {
             </span>{" "}
             is reserved and awaiting final provider confirmation.
           </p>
+
+          {paymentStatus === "PENDING" && (
+            <p className="mt-2 text-sm leading-6 text-zinc-600">
+              We are checking the payment provider for confirmation.
+            </p>
+          )}
 
           <div className="mt-7 flex flex-wrap gap-3">
             <Status label="Order" value={order.status} />

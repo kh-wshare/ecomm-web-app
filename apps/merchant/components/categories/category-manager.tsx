@@ -1,18 +1,23 @@
 'use client';
 
 import {
+  AvatarFallback,
+  AvatarImage,
+  AvatarRoot,
   EmptyState as HeroEmptyState,
   Form,
   Label,
   ListBox,
   Modal,
+  Pagination,
   SearchField,
   Select,
+  Tooltip,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { type ReactNode, useDeferredValue, useMemo, useState } from 'react';
 
-import { Button, Chip, Input, Table, TextArea } from '@repo/ui';
+import { Button, Chip, ConfirmDialog, Input, Table, TextArea } from '@repo/ui';
 
 import { Select as ProductFilterSelect } from '@/components/products/product-controls';
 import {
@@ -41,6 +46,7 @@ const emptyValues: CategoryValues = {
   status: 'ACTIVE',
 };
 const emptyCategories: ProductCategory[] = [];
+const pageSize = 10;
 
 export function CategoryManager() {
   const { can } = usePermissions();
@@ -50,12 +56,14 @@ export function CategoryManager() {
   const canDelete = can('products.delete');
   const [search, setSearch] = useState('');
   const deferredSearch = useDeferredValue(search.trim());
+  const [page, setPage] = useState(1);
   const [statusFilter, setStatusFilter] = useState<CategoryStatus | 'ALL'>(
     'ALL',
   );
   const [editingCategoryId, setEditingCategoryId] = useState<string | null>(
     null,
   );
+  const [pendingArchiveId, setPendingArchiveId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [values, setValues] = useState<CategoryValues>(emptyValues);
@@ -70,6 +78,13 @@ export function CategoryManager() {
   const saveCategory = useSaveCategory();
   const archiveCategory = useArchiveCategory();
   const categories = categoriesQuery.data ?? emptyCategories;
+  const totalPages = Math.max(1, Math.ceil(categories.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageCategories = categories.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+  const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
   const editingCategory = useMemo(
     () =>
       categories.find((category) => category.id === editingCategoryId) ?? null,
@@ -181,7 +196,10 @@ export function CategoryManager() {
               <SearchField.Input
                 placeholder="Search categories..."
                 value={search}
-                onChange={(event) => setSearch(event.target.value)}
+                onChange={(event) => {
+                  setSearch(event.target.value);
+                  setPage(1);
+                }}
               />
               <SearchField.ClearButton />
             </SearchField.Group>
@@ -190,7 +208,10 @@ export function CategoryManager() {
         <FilterSelect
           label="Status"
           value={statusFilter}
-          onChange={(value) => setStatusFilter(value as CategoryStatus | 'ALL')}
+          onChange={(value) => {
+            setStatusFilter(value as CategoryStatus | 'ALL');
+            setPage(1);
+          }}
         />
       </div>
 
@@ -264,26 +285,65 @@ export function CategoryManager() {
                   );
                 }}
               >
-                {categories.map((category) => (
+                {pageCategories.map((category) => (
                   <CategoryRow
                     archivePending={archiveCategory.isPending}
                     canDelete={canDelete}
                     canUpdate={canUpdate}
                     category={category}
                     key={category.id}
-                    onArchive={() => {
-                      archiveCategory.mutate(category.id, {
-                        onError: (error) =>
-                          notify.error(error, 'Unable to archive category'),
-                        onSuccess: () => notify.success('Category archived'),
-                      });
-                    }}
+                    onArchive={() => setPendingArchiveId(category.id)}
                     onEdit={() => openEdit(category)}
                   />
                 ))}
               </Table.Body>
             </Table.Content>
           </Table.ScrollContainer>
+          {categories.length ? (
+            <Table.Footer>
+              <Pagination size="sm">
+                <Pagination.Summary className="text-xs text-muted">
+                  {(currentPage - 1) * pageSize + 1} to{' '}
+                  {Math.min(currentPage * pageSize, categories.length)} of{' '}
+                  {categories.length} results
+                </Pagination.Summary>
+                <Pagination.Content>
+                  <Pagination.Item>
+                    <Pagination.Previous
+                      isDisabled={currentPage === 1}
+                      onPress={() =>
+                        setPage((current) => Math.max(1, current - 1))
+                      }
+                    >
+                      <Pagination.PreviousIcon />
+                      Prev
+                    </Pagination.Previous>
+                  </Pagination.Item>
+                  {pages.map((pageNumber) => (
+                    <Pagination.Item key={pageNumber}>
+                      <Pagination.Link
+                        isActive={pageNumber === currentPage}
+                        onPress={() => setPage(pageNumber)}
+                      >
+                        {pageNumber}
+                      </Pagination.Link>
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Item>
+                    <Pagination.Next
+                      isDisabled={currentPage === totalPages}
+                      onPress={() =>
+                        setPage((current) => Math.min(totalPages, current + 1))
+                      }
+                    >
+                      Next
+                      <Pagination.NextIcon />
+                    </Pagination.Next>
+                  </Pagination.Item>
+                </Pagination.Content>
+              </Pagination>
+            </Table.Footer>
+          ) : null}
         </Table>
       </div>
 
@@ -297,6 +357,25 @@ export function CategoryManager() {
           onUpdate={update}
         />
       )}
+
+      <ConfirmDialog
+        confirmLabel="Archive category"
+        description="This action will hide the category from active listings. You can still restore it later if needed."
+        isPending={archiveCategory.isPending}
+        open={Boolean(pendingArchiveId)}
+        title="Archive category?"
+        onCancel={() => setPendingArchiveId(null)}
+        onConfirm={() => {
+          if (!pendingArchiveId) return;
+          archiveCategory.mutate(pendingArchiveId, {
+            onError: (error) => notify.error(error, 'Unable to archive category'),
+            onSuccess: () => {
+              notify.success('Category archived');
+              setPendingArchiveId(null);
+            },
+          });
+        }}
+      />
     </section>
   );
 }
@@ -351,27 +430,39 @@ function CategoryRow({
         {formatDate(category.updatedAt, { dateStyle: 'medium' })}
       </Table.Cell>
       <Table.Cell className="px-4 py-4">
-        <div className="flex justify-end gap-2">
+        <div className="flex justify-end gap-1">
           {canUpdate && (
-            <Button
-              size="sm"
-              type="button"
-              variant="secondary"
-              onPress={onEdit}
-            >
-              Edit
-            </Button>
+            <Tooltip delay={0}>
+              <Button
+                type="button"
+                isIconOnly
+                size="sm"
+                variant="tertiary"
+                onPress={onEdit}
+              >
+                <Icon className="size-4" icon="gravity-ui:pencil" />
+              </Button>
+              <Tooltip.Content>
+                <p>Edit</p>
+              </Tooltip.Content>
+            </Tooltip>
           )}
           {canDelete && (
-            <Button
-              isDisabled={archivePending}
-              size="sm"
-              type="button"
-              variant="danger-soft"
-              onPress={onArchive}
-            >
-              Archive
-            </Button>
+            <Tooltip delay={0}>
+              <Button
+                isDisabled={archivePending}
+                type="button"
+                isIconOnly
+                size="sm"
+                variant="danger-soft"
+                onPress={onArchive}
+              >
+                <Icon className="size-4" icon="gravity-ui:trash-bin" />
+              </Button>
+              <Tooltip.Content>
+                <p>Archive</p>
+              </Tooltip.Content>
+            </Tooltip>
           )}
         </div>
       </Table.Cell>
@@ -544,20 +635,21 @@ function CategoryLogo({
   logoUrl: string | null;
   name: string;
 }) {
-  if (logoUrl) {
-    return (
-      <img
-        alt=""
-        className="size-10 shrink-0 rounded-lg border border-separator object-cover"
-        src={logoUrl}
-      />
-    );
-  }
+  const initial = name.trim().charAt(0).toUpperCase() || 'C';
 
   return (
-    <span className="grid size-10 shrink-0 place-items-center rounded-lg bg-accent/10 text-sm font-semibold text-accent">
-      {name.trim().charAt(0).toUpperCase() || 'C'}
-    </span>
+    <AvatarRoot
+      className="size-10 shrink-0 border border-separator bg-accent/10 text-accent"
+      size="sm"
+    >
+      {logoUrl ? (
+        <AvatarImage alt={name} className="object-cover" src={logoUrl} />
+      ) : (
+        <AvatarFallback className="text-sm font-semibold text-accent">
+          {initial}
+        </AvatarFallback>
+      )}
+    </AvatarRoot>
   );
 }
 
@@ -781,8 +873,10 @@ function ErrorState({
   return (
     <TableStateContent>
       <Icon className="size-6 text-danger" icon="gravity-ui:circle-xmark" />
-      <span className="text-sm font-semibold">Categories are unavailable</span>
-      <span className="max-w-sm text-xs text-muted">{message}</span>
+      <div className="space-y-1">
+        <div className="text-sm font-semibold">Categories are unavailable</div>
+        <div className="max-w-sm text-xs text-muted">{message}</div>
+      </div>
       <Button type="button" variant="primary" onPress={onRetry}>
         Try again
       </Button>

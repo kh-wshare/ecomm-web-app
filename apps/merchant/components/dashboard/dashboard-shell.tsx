@@ -1,7 +1,6 @@
 "use client";
 
 import { useEffect } from "react";
-import { useRouter } from "next/navigation";
 
 import { DashboardLoading } from "./dashboard-loading";
 import { DashboardSidebar } from "./dashboard-sidebar";
@@ -15,7 +14,6 @@ import { useUiStore } from "@/stores/ui-store";
 export function DashboardShell({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
-  const router = useRouter();
   const { activeMerchant, isAuthenticated, isChecking } = useAuthSession();
   const isCollapsed = useUiStore((state) => state.isSidebarCollapsed);
 
@@ -23,8 +21,11 @@ export function DashboardShell({
     if (isChecking || isAuthenticated) return;
 
     const next = window.location.pathname + window.location.search;
-    router.replace(`/auth/login?next=${encodeURIComponent(next)}`);
-  }, [isAuthenticated, isChecking, router]);
+    const target = `/merchant/auth/login?next=${encodeURIComponent(next)}`;
+
+    if (window.location.pathname === "/merchant/auth/login") return;
+    window.location.replace(target);
+  }, [isAuthenticated, isChecking]);
 
   if (isChecking || !isAuthenticated) return <DashboardLoading />;
 

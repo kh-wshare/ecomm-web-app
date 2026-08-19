@@ -247,6 +247,14 @@ export type PaymentWebhookEvent = {
   createdAt: string;
 };
 
+export type PaymentAction = {
+  type: string;
+  qrPayload: string;
+  qrImage: string;
+  deepLink: string;
+  reference: string;
+}
+
 export type Payment = {
   id: ID;
   orderId: ID;
@@ -257,12 +265,13 @@ export type Payment = {
   status: PaymentTransactionStatus;
   paidAt: string | null;
   createdAt: string;
-  order: {
-    id: ID;
-    orderNumber: string;
-    status?: string;
-    paymentStatus?: string;
-  };
+  action: PaymentAction;
+  // order: {
+  //   id: ID;
+  //   orderNumber: string;
+  //   status?: string;
+  //   paymentStatus?: string;
+  // };
   webhookEvents?: PaymentWebhookEvent[];
 };
 

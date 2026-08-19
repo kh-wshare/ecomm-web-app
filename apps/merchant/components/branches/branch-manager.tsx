@@ -6,12 +6,14 @@ import {
   Form,
   ListBox,
   Modal,
+  Pagination,
   Select,
+  Tooltip,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { type ReactNode, useMemo, useState } from 'react';
 
-import { Button, Chip, Input, Label, Table } from '@repo/ui';
+import { Button, Chip, ConfirmDialog, Input, Label, Table } from '@repo/ui';
 
 import {
   useArchiveBranch,
@@ -42,10 +44,13 @@ const emptyValues: BranchValues = {
   status: 'ACTIVE',
 };
 const emptyBranches: MerchantBranch[] = [];
+const pageSize = 10;
 
 export function BranchManager() {
   const [statusFilter, setStatusFilter] = useState<BranchStatus | 'ALL'>('ALL');
+  const [page, setPage] = useState(1);
   const [editingBranchId, setEditingBranchId] = useState<string | null>(null);
+  const [pendingArchiveId, setPendingArchiveId] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [values, setValues] = useState<BranchValues>(emptyValues);
   const branchFilters = useMemo(
@@ -56,6 +61,13 @@ export function BranchManager() {
   const saveBranch = useSaveBranch();
   const archiveBranch = useArchiveBranch();
   const branches = branchesQuery.data ?? emptyBranches;
+  const totalPages = Math.max(1, Math.ceil(branches.length / pageSize));
+  const currentPage = Math.min(page, totalPages);
+  const pageBranches = branches.slice(
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize,
+  );
+  const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
   const editingBranch = useMemo(
     () => branches.find((branch) => branch.id === editingBranchId) ?? null,
     [branches, editingBranchId],
@@ -120,7 +132,10 @@ export function BranchManager() {
         <FilterSelect
           label="Status"
           value={statusFilter}
-          onChange={(value) => setStatusFilter(value as BranchStatus | 'ALL')}
+          onChange={(value) => {
+            setStatusFilter(value as BranchStatus | 'ALL');
+            setPage(1);
+          }}
         />
       </div>
 
@@ -198,24 +213,63 @@ export function BranchManager() {
                   );
                 }}
               >
-                {branches.map((branch) => (
+                {pageBranches.map((branch) => (
                   <BranchRow
                     archivePending={archiveBranch.isPending}
                     branch={branch}
                     key={branch.id}
-                    onArchive={() => {
-                      archiveBranch.mutate(branch.id, {
-                        onError: (error) =>
-                          notify.error(error, 'Unable to archive branch'),
-                        onSuccess: () => notify.success('Branch archived'),
-                      });
-                    }}
+                    onArchive={() => setPendingArchiveId(branch.id)}
                     onEdit={() => openEdit(branch)}
                   />
                 ))}
               </Table.Body>
             </Table.Content>
           </Table.ScrollContainer>
+          {branches.length ? (
+            <Table.Footer>
+              <Pagination size="sm">
+                <Pagination.Summary className="text-xs text-muted">
+                  {(currentPage - 1) * pageSize + 1} to{' '}
+                  {Math.min(currentPage * pageSize, branches.length)} of{' '}
+                  {branches.length} results
+                </Pagination.Summary>
+                <Pagination.Content>
+                  <Pagination.Item>
+                    <Pagination.Previous
+                      isDisabled={currentPage === 1}
+                      onPress={() =>
+                        setPage((current) => Math.max(1, current - 1))
+                      }
+                    >
+                      <Pagination.PreviousIcon />
+                      Prev
+                    </Pagination.Previous>
+                  </Pagination.Item>
+                  {pages.map((pageNumber) => (
+                    <Pagination.Item key={pageNumber}>
+                      <Pagination.Link
+                        isActive={pageNumber === currentPage}
+                        onPress={() => setPage(pageNumber)}
+                      >
+                        {pageNumber}
+                      </Pagination.Link>
+                    </Pagination.Item>
+                  ))}
+                  <Pagination.Item>
+                    <Pagination.Next
+                      isDisabled={currentPage === totalPages}
+                      onPress={() =>
+                        setPage((current) => Math.min(totalPages, current + 1))
+                      }
+                    >
+                      Next
+                      <Pagination.NextIcon />
+                    </Pagination.Next>
+                  </Pagination.Item>
+                </Pagination.Content>
+              </Pagination>
+            </Table.Footer>
+          ) : null}
         </Table>
       </div>
 
@@ -229,6 +283,25 @@ export function BranchManager() {
           onUpdate={update}
         />
       )}
+
+      <ConfirmDialog
+        confirmLabel="Archive branch"
+        description="This action will hide the branch from active listings and prevent it from being used in new transactions."
+        isPending={archiveBranch.isPending}
+        open={Boolean(pendingArchiveId)}
+        title="Archive branch?"
+        onCancel={() => setPendingArchiveId(null)}
+        onConfirm={() => {
+          if (!pendingArchiveId) return;
+          archiveBranch.mutate(pendingArchiveId, {
+            onError: (error) => notify.error(error, 'Unable to archive branch'),
+            onSuccess: () => {
+              notify.success('Branch archived');
+              setPendingArchiveId(null);
+            },
+          });
+        }}
+      />
     </section>
   );
 }
@@ -313,19 +386,36 @@ function BranchRow({
         {formatDate(branch.updatedAt, { dateStyle: 'medium' })}
       </Table.Cell>
       <Table.Cell className="px-4 py-4">
-        <div className="flex justify-end gap-2">
-          <Button size="sm" type="button" variant="secondary" onPress={onEdit}>
-            Edit
-          </Button>
-          <Button
-            isDisabled={archivePending}
-            size="sm"
-            type="button"
-            variant="danger-soft"
-            onPress={onArchive}
-          >
-            Archive
-          </Button>
+        <div className="flex justify-end gap-1">
+          <Tooltip delay={0}>
+            <Button
+              type="button"
+              isIconOnly
+              size="sm"
+              variant="tertiary"
+              onPress={onEdit}
+            >
+              <Icon className="size-4" icon="gravity-ui:pencil" />
+            </Button>
+            <Tooltip.Content>
+              <p>Edit</p>
+            </Tooltip.Content>
+          </Tooltip>
+          <Tooltip delay={0}>
+            <Button
+              isDisabled={archivePending}
+              type="button"
+              isIconOnly
+              size="sm"
+              variant="danger-soft"
+              onPress={onArchive}
+            >
+              <Icon className="size-4" icon="gravity-ui:trash-bin" />
+            </Button>
+            <Tooltip.Content>
+              <p>Archive</p>
+            </Tooltip.Content>
+          </Tooltip>
         </div>
       </Table.Cell>
     </Table.Row>

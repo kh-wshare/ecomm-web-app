@@ -1,6 +1,9 @@
 'use client';
 
 import {
+  AvatarFallback,
+  AvatarImage,
+  AvatarRoot,
   Checkbox,
   EmptyState as HeroEmptyState,
   Label,
@@ -372,6 +375,40 @@ export function ProductList() {
   );
 }
 
+function ProductAvatar({
+  imageUrl,
+  name,
+}: {
+  imageUrl?: string | null;
+  name: string;
+}) {
+  const initial = name.trim().charAt(0).toUpperCase() || 'P';
+
+  return (
+    <AvatarRoot
+      className="size-10 shrink-0 border border-separator bg-accent/10 text-accent"
+      size="sm"
+    >
+      {imageUrl ? (
+        <AvatarImage alt={name} className="object-cover" src={imageUrl} />
+      ) : (
+        <AvatarFallback className="text-sm font-semibold text-accent">
+          {initial}
+        </AvatarFallback>
+      )}
+    </AvatarRoot>
+  );
+}
+
+function getProductImageUrl(
+  media?: Array<{ type?: string; url?: string | null }> | null,
+) {
+  return (
+    media?.find((item) => item.type === 'IMAGE' || item.type === 'VIDEO')?.url ??
+    null
+  );
+}
+
 function ProductRow({
   canDelete,
   canUpdate,
@@ -425,16 +462,24 @@ function ProductRow({
         </Table.Cell>
       )}
       <Table.Cell className="px-4 py-4">
-        <Link
-          className="font-semibold hover:text-accent"
-          href={`/products/${product.id}`}
-        >
-          {product.name}
-        </Link>
-        <p className="mt-1 text-xs text-muted">{product.sku}</p>
-        <p className="mt-1 text-xs text-muted">
-          {product.category?.name ?? 'Uncategorized'}
-        </p>
+        <div className="flex min-w-0 items-center gap-3">
+          <ProductAvatar
+            imageUrl={getProductImageUrl(product.media)}
+            name={product.name}
+          />
+          <div className="min-w-0">
+            <Link
+              className="block truncate font-semibold hover:text-accent"
+              href={`/products/${product.id}`}
+            >
+              {product.name}
+            </Link>
+            <p className="mt-1 text-xs text-muted">{product.sku}</p>
+            <p className="mt-1 text-xs text-muted">
+              {product.category?.name ?? 'Uncategorized'}
+            </p>
+          </div>
+        </div>
       </Table.Cell>
       <Table.Cell className="px-4 py-4">
         {channels.length ? (

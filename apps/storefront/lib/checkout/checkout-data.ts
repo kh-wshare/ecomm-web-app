@@ -66,6 +66,18 @@ export async function createCheckoutPaymentIntent(
   return response.data;
 }
 
+export async function getCheckoutPaymentStatus(
+  paymentId: string,
+  checkoutToken: string,
+) {
+  const response = await apiClient.get<ApiResponse<Payment>>(
+    `/payments/${paymentId}/status`,
+    checkoutRequest(checkoutToken),
+  );
+
+  return response.data;
+}
+
 export const createPaymentIntent = createCheckoutPaymentIntent;
 
 function checkoutRequest(checkoutToken: string) {
