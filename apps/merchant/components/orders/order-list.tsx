@@ -68,12 +68,12 @@ export function OrderTable() {
 
       <div className="grid gap-3 rounded-2xl border border-separator bg-surface p-4 md:grid-cols-2 xl:grid-cols-6">
         <div className="md:col-span-2">
-          <SearchField name="search" value={filters.search}>
+          <SearchField name="search" value={filters.search} variant="secondary">
             <Label>Search</Label>
             <SearchField.Group className="bg-surface-secondary shadow-none">
               <SearchField.SearchIcon />
               <SearchField.Input
-                className="text-muted"
+                // className="text-muted"
                 value={filters.search}
                 onChange={(event) => update('search', event.target.value)}
                 placeholder="Search order number, name, or email"
@@ -135,7 +135,7 @@ export function OrderTable() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-separator bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-separator bg-surface">
         <Table variant="secondary">
           <Table.ScrollContainer>
             <Table.Content

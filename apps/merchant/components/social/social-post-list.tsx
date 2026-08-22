@@ -4,7 +4,9 @@ import { type ReactNode, useDeferredValue, useState } from 'react';
 import {
   Button,
   EmptyState as HeroEmptyState,
+  Label,
   Pagination,
+  SearchField,
   Table,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
@@ -79,16 +81,21 @@ export function SocialPostList() {
         )}
       </header>
 
-      <div className="grid gap-3 rounded-2xl border border-separator bg-surface p-4 sm:grid-cols-3">
-        <label className="grid gap-1.5">
-          <span className="text-sm font-medium">Search social posts</span>
-          <Input
-            variant="secondary"
-            placeholder="Search title or content"
-            value={filters.search}
-            onChange={(event) => update('search', event.target.value)}
-          />
-        </label>
+      <div className="grid gap-2 rounded-2xl border border-separator bg-surface p-4 sm:grid-cols-5">
+        <div className="col-span-3 flex flex-col gap-1">
+          <SearchField name="search" value={filters.search} variant="secondary">
+            <Label>Search</Label>
+            <SearchField.Group className="bg-surface-secondary shadow-none">
+              <SearchField.SearchIcon />
+              <SearchField.Input
+                value={filters.search}
+                onChange={(event) => update('search', event.target.value)}
+                placeholder="Search content..."
+              />
+              <SearchField.ClearButton />
+            </SearchField.Group>
+          </SearchField>
+        </div>
         <Select
           label="Status"
           value={filters.status}

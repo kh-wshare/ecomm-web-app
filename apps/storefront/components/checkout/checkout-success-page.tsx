@@ -12,7 +12,7 @@ import {
 import { checkoutStorage } from "@/lib/checkout/checkout-storage";
 import { formatCurrency } from "@/lib/formatters/currency";
 
-export function CheckoutSuccess({ sessionId }: { sessionId: string }) {
+export function CheckoutSuccessPage({ sessionId }: { sessionId: string }) {
   const contextValue = useSyncExternalStore(
     emptySubscribe,
     () => checkoutStorage.raw(sessionId),

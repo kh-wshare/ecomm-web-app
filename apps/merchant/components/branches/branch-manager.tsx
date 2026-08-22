@@ -9,6 +9,7 @@ import {
   Pagination,
   Select,
   Tooltip,
+  SearchField,
 } from '@heroui/react';
 import { Icon } from '@iconify/react';
 import { type ReactNode, useMemo, useState } from 'react';
@@ -128,7 +129,21 @@ export function BranchManager() {
         </Button>
       </header>
 
-      <div className="grid gap-4 rounded-2xl border border-separator bg-surface p-4 sm:grid-cols-4">
+      <div className="grid gap-2 rounded-2xl border border-separator bg-surface p-4 sm:grid-cols-5">
+        <div className="col-span-4 flex flex-col gap-1">
+          <SearchField name="search" value={""} variant="secondary">
+            <Label>Search</Label>
+            <SearchField.Group className="bg-surface-secondary shadow-none">
+              <SearchField.SearchIcon />
+              <SearchField.Input
+                value=""
+                // onChange={(event) => update('search', event.target.value)}
+                placeholder="Search branchs..."
+              />
+              <SearchField.ClearButton />
+            </SearchField.Group>
+          </SearchField>
+        </div>
         <FilterSelect
           label="Status"
           value={statusFilter}

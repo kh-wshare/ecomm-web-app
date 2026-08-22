@@ -120,7 +120,7 @@ export function ProductList() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-3">
-          {selected.length > 0 && canDelete && (
+          {/* {selected.length > 0 && canDelete && (
             <div>
               <Button
                 className="bg-danger px-3 disabled:opacity-60"
@@ -133,7 +133,7 @@ export function ProductList() {
                   : `Delete selected (${selected.length})`}
               </Button>
             </div>
-          )}
+          )} */}
           {canCreate && (
             <Button
               type="button"
@@ -212,7 +212,7 @@ export function ProductList() {
               onSelectionChange={updateSelection}
             >
               <Table.Header className="text-muted text-xs font-semibold">
-                {canDelete && (
+                {/* {canDelete && (
                   <Table.Column
                     className="w-12 rounded-b-none px-4 py-3"
                     id="select"
@@ -228,9 +228,9 @@ export function ProductList() {
                       </Checkbox.Content>
                     </Checkbox>
                   </Table.Column>
-                )}
+                )} */}
                 <Table.Column
-                  className="w-[280px] px-4 py-3 font-medium"
+                  className="w-[280px] rounded-b-none px-4 py-3 font-medium"
                   id="product"
                   isRowHeader
                 >
@@ -446,7 +446,7 @@ function ProductRow({
       className="border-t border-separator first:border-0 hover:bg-surface-secondary/30"
       id={product.id}
     >
-      {canDelete && (
+      {/* {canDelete && (
         <Table.Cell className="px-4 py-4">
           <Checkbox
             aria-label={`Select ${product.name}`}
@@ -460,7 +460,7 @@ function ProductRow({
             </Checkbox.Content>
           </Checkbox>
         </Table.Cell>
-      )}
+      )} */}
       <Table.Cell className="px-4 py-4">
         <div className="flex min-w-0 items-center gap-3">
           <ProductAvatar

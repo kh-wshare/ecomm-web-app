@@ -113,18 +113,19 @@ export function PaymentDetail({ paymentId }: { paymentId: string }) {
           </p>
           <Link
             className="mt-4 inline-flex text-lg font-semibold text-accent hover:underline"
-            href={`/orders/${payment.order.id}`}
+            href={`/orders/${payment.orderId}`}
           >
-            {payment.order.orderNumber} →
+            {/* {payment.order.orderNumber} → */}
+            {payment.orderId} →
           </Link>
-          {payment.order.status && (
+          {/* {payment.order.status && (
             <div className="mt-4 flex flex-wrap gap-2">
               <OrderStatusBadge status={payment.order.status} />
               {payment.order.paymentStatus && (
                 <OrderStatusBadge status={payment.order.paymentStatus} />
               )}
             </div>
-          )}
+          )} */}
         </Panel>
       </div>
 

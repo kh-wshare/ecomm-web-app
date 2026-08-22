@@ -1,6 +1,6 @@
 import type { ReactNode } from "react";
 
-import { Alert, Button, Skeleton } from "@heroui/react";
+import { Alert, Button, Spinner } from "@heroui/react";
 
 export function EmptyState({
   action,
@@ -21,18 +21,21 @@ export function EmptyState({
 }
 
 export function LoadingState({
-  className = "h-[440px]",
-  label = "Loading",
+  className = "",
+  label = "",
 }: {
   className?: string;
   label?: string;
 }) {
   return (
-    <Skeleton
-      aria-label={label}
-      className={`rounded-2xl ${className}`}
-      role="status"
-    />
+    <div className={`flex min-h-screen items-center justify-center ${className}`}>
+      <div className="gap-1 text-center">
+        <div>
+          <Spinner className="animate-[spin_0.4s_linear_infinite] motion-reduce:animate-none" />
+        </div>
+        <div>{label}</div>
+      </div>
+    </div>
   );
 }
 

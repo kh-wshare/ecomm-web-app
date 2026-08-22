@@ -27,22 +27,35 @@ export function PurchasePanel({
 }) {
   const router = useRouter();
   const optionCarouselRef = useRef<HTMLDivElement>(null);
-  const [variantId, setVariantId] = useState("");
+
+  const [variantId, setVariantId] = useState<string>(() => {
+    return product.variants.length > 0 ? product.variants[0].id : "";
+  });
+
   const [quantity, setQuantity] = useState(1);
   const [shareFeedback, setShareFeedback] = useState("");
+
   const selectedVariant = product.variants.find(
     (variant) => variant.id === variantId,
   );
+
   const hasVariants = product.variants.length > 0;
+
   const selectedTargetAvailable = selectedVariant
     ? selectedVariant.isAvailable
     : product.baseIsAvailable;
+
   const canBuy =
-    product.isAvailable && product.isPurchasable && selectedTargetAvailable;
+    product.isAvailable &&
+    product.isPurchasable &&
+    selectedTargetAvailable;
+
   const price = selectedVariant?.price ?? product.price;
+
   const checkout = useMutation({
     mutationFn: async () => {
       const customer = (await getCustomerSession())?.user;
+
       return createCheckoutSession({
         merchantSlug,
         ...(customer
@@ -50,63 +63,98 @@ export function PurchasePanel({
               customerEmail: customer.email,
               customerId: customer.id,
               customerName: customer.fullName,
-              ...(customer.phone ? { customerPhone: customer.phone } : {}),
+              ...(customer.phone
+                ? { customerPhone: customer.phone }
+                : {}),
             }
           : {}),
         sourceChannel: "WEBSITE",
         items: [
           {
             productId: product.id,
-            ...(selectedVariant ? { variantId: selectedVariant.id } : {}),
+            ...(selectedVariant
+              ? { variantId: selectedVariant.id }
+              : {}),
             quantity,
           },
         ],
       });
     },
+
     onSuccess: (session) => {
       checkoutStorage.set(session.id, {
         token: session.checkoutToken,
         merchantSlug,
         productSlug: product.slug,
       });
+
       router.push(`/checkout/${session.id}`);
     },
   });
+
   const shareUrl = `${env.NEXT_PUBLIC_STOREFRONT_URL}/${merchantSlug}/products/${product.slug}`;
+
   const availabilityLabel = canBuy
     ? "Ready to order"
     : product.isPurchasable
       ? "Sold out"
       : "Browsing only";
+
   const scrollOptions = (direction: "next" | "previous") => {
     const carousel = optionCarouselRef.current;
-    if (!carousel) return;
 
-    const cardWidth = carousel.querySelector("button")?.clientWidth ?? 180;
+    if (!carousel) {
+      return;
+    }
+
+    const cardWidth =
+      carousel.querySelector("button")?.clientWidth ?? 180;
+
     carousel.scrollBy({
       behavior: "smooth",
-      left: direction === "next" ? cardWidth + 12 : -(cardWidth + 12),
+      left:
+        direction === "next"
+          ? cardWidth + 12
+          : -(cardWidth + 12),
     });
   };
 
   return (
     <Card
-      className="shadow-none lg:sticky lg:top-28"
+      className="w-full shadow-none lg:sticky lg:top-28"
       variant="secondary"
-      style={{ borderRadius: radiusValue(config.layout.borderRadius) }}
+      style={{
+        borderRadius: radiusValue(config.layout.borderRadius),
+      }}
     >
-      <Card.Content className="p-5 sm:p-6">
+      <Card.Content className="p-4 sm:p-6">
+        {/* Status */}
         <div className="flex flex-wrap items-center gap-2">
           <Chip size="sm" variant="soft">
             SKU {selectedVariant?.sku ?? product.sku}
           </Chip>
-          <Chip color={canBuy ? "success" : "danger"} size="sm" variant="soft">
+
+          <Chip
+            color={canBuy ? "success" : "danger"}
+            size="sm"
+            variant="soft"
+          >
             {availabilityLabel}
           </Chip>
         </div>
 
+        {/* Product name */}
         <h1
-          className="mt-4 text-3xl font-semibold tracking-tight sm:text-5xl"
+          className="
+            mt-3
+            text-2xl
+            font-semibold
+            leading-tight
+            tracking-tight
+            sm:mt-4
+            sm:text-4xl
+            lg:text-5xl
+          "
           style={{
             fontFamily: `${config.typography.headingFont}, ui-sans-serif, system-ui, sans-serif`,
           }}
@@ -114,30 +162,46 @@ export function PurchasePanel({
           {product.name}
         </h1>
 
-        <div className="mt-5 flex flex-wrap items-end justify-between gap-3">
-          <p className="text-2xl font-semibold">
+        {/* Price */}
+        <div className="mt-4 flex flex-wrap items-baseline justify-between gap-2 sm:mt-5">
+          <p className="text-xl font-semibold sm:text-2xl">
             {formatCurrency(price, product.currency)}
           </p>
+
           {hasVariants && (
-            <p className="text-sm opacity-60">
+            <p className="text-xs opacity-60 sm:text-sm">
               {product.variants.length + 1} options
             </p>
           )}
         </div>
 
+        {/* Description */}
         {product.description && (
-          <p className="mt-6 whitespace-pre-wrap text-base leading-7 opacity-70">
+          <p
+            className="
+              mt-5
+              whitespace-pre-wrap
+              text-sm
+              leading-6
+              opacity-70
+              sm:mt-6
+              sm:text-base
+              sm:leading-7
+            "
+          >
             {product.description}
           </p>
         )}
 
+        {/* Variants */}
         {hasVariants && (
-          <fieldset className="mt-7 border-t border-current/10 pt-6">
+          <fieldset className="mt-6 border-t border-current/10 pt-5 sm:mt-7 sm:pt-6">
             <div className="flex items-center justify-between gap-3">
               <legend className="text-sm font-semibold">
                 Choose an option
               </legend>
-              <div className="flex items-center gap-2">
+
+              <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
                 <Button
                   aria-label="Previous product option"
                   isIconOnly
@@ -146,8 +210,12 @@ export function PurchasePanel({
                   variant="secondary"
                   onPress={() => scrollOptions("previous")}
                 >
-                  <Icon className="size-4" icon="gravity-ui:chevron-left" />
+                  <Icon
+                    className="size-4"
+                    icon="gravity-ui:chevron-left"
+                  />
                 </Button>
+
                 <Button
                   aria-label="Next product option"
                   isIconOnly
@@ -156,24 +224,38 @@ export function PurchasePanel({
                   variant="secondary"
                   onPress={() => scrollOptions("next")}
                 >
-                  <Icon className="size-4" icon="gravity-ui:chevron-right" />
+                  <Icon
+                    className="size-4"
+                    icon="gravity-ui:chevron-right"
+                  />
                 </Button>
               </div>
             </div>
+
             <div
-              className="-mx-5 mt-3 overflow-x-auto px-5 pb-1 sm:-mx-6 sm:px-6"
               ref={optionCarouselRef}
+              className="
+                -mx-4
+                mt-3
+                overflow-x-auto
+                px-4
+                pb-2
+                sm:-mx-6
+                sm:px-6
+              "
+              style={{
+                scrollbarWidth: "none",
+              }}
             >
-              <div className="grid auto-cols-[minmax(160px,1fr)] grid-flow-col gap-3">
-                <ProductOptionCard
-                  config={config}
-                  isAvailable={product.baseIsAvailable}
-                  isSelected={variantId === ""}
-                  name={product.name}
-                  price={formatCurrency(product.price, product.currency)}
-                  sku={product.sku}
-                  onSelect={() => setVariantId("")}
-                />
+              <div
+                className="
+                  grid
+                  auto-cols-[minmax(145px,75vw)]
+                  grid-flow-col
+                  gap-3
+                  sm:auto-cols-[minmax(160px,1fr)]
+                "
+              >
                 {product.variants.map((variant) => (
                   <ProductOptionCard
                     config={config}
@@ -181,7 +263,10 @@ export function PurchasePanel({
                     isSelected={variant.id === variantId}
                     key={variant.id}
                     name={variant.name}
-                    price={formatCurrency(variant.price, product.currency)}
+                    price={formatCurrency(
+                      variant.price,
+                      product.currency,
+                    )}
                     sku={variant.sku}
                     onSelect={() => setVariantId(variant.id)}
                   />
@@ -191,12 +276,16 @@ export function PurchasePanel({
           </fieldset>
         )}
 
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row">
+        {/* Quantity + Buy */}
+        <div className="mt-6 flex items-center gap-2 sm:mt-7 sm:gap-3">
+          {/* Quantity */}
           <div
-            className="flex h-12 items-center gap-1 p-1 shadow-none"
+            className="flex h-12 shrink-0 items-center gap-0.5 p-1 sm:gap-1"
             style={{
               backgroundColor: `color-mix(in srgb, ${config.colors.text} 6%, ${config.colors.background})`,
-              borderRadius: radiusValue(config.layout.borderRadius),
+              borderRadius: radiusValue(
+                config.layout.borderRadius,
+              ),
             }}
           >
             <Button
@@ -206,23 +295,38 @@ export function PurchasePanel({
               size="md"
               type="button"
               variant="tertiary"
-              onPress={() => setQuantity((current) => Math.max(1, current - 1))}
+              onPress={() =>
+                setQuantity((current) =>
+                  Math.max(1, current - 1),
+                )
+              }
             >
-              <Icon className="size-4" icon="gravity-ui:minus" />
+              <Icon
+                className="size-4"
+                icon="gravity-ui:minus"
+              />
             </Button>
+
             <Input
               aria-label="Quantity"
-              className="w-20 bg-transparent text-center shadow-none"
+              className="w-10 bg-transparent text-center shadow-none sm:w-16"
               max="100"
               min="1"
               type="number"
               value={String(quantity)}
               onChange={(event) =>
                 setQuantity(
-                  Math.min(100, Math.max(1, Number(event.target.value) || 1)),
+                  Math.min(
+                    100,
+                    Math.max(
+                      1,
+                      Number(event.target.value) || 1,
+                    ),
+                  ),
                 )
               }
             />
+
             <Button
               aria-label="Increase quantity"
               isIconOnly
@@ -231,32 +335,62 @@ export function PurchasePanel({
               type="button"
               variant="tertiary"
               onPress={() =>
-                setQuantity((current) => Math.min(100, current + 1))
+                setQuantity((current) =>
+                  Math.min(100, current + 1),
+                )
               }
             >
-              <Icon className="size-4" icon="gravity-ui:plus" />
+              <Icon
+                className="size-4"
+                icon="gravity-ui:plus"
+              />
             </Button>
           </div>
+
+          {/* Buy */}
           <Button
-            className="h-12 flex-1 px-6 text-sm font-bold text-white"
+            className="
+              h-12
+              min-w-0
+              flex-1
+              px-3
+              text-sm
+              font-bold
+              text-white
+              sm:px-6
+            "
             isDisabled={!canBuy || checkout.isPending}
             variant="primary"
             style={{
               backgroundColor: config.colors.primary,
-              borderRadius: radiusValue(config.layout.borderRadius),
+              borderRadius: radiusValue(
+                config.layout.borderRadius,
+              ),
             }}
             type="button"
             onPress={() => checkout.mutate()}
           >
-            <Icon className="size-4" icon="gravity-ui:shopping-cart" />
-            {checkout.isPending ? "Reserving stock..." : "Buy now"}
+            <Icon
+              className="size-4 shrink-0"
+              icon="gravity-ui:shopping-cart"
+            />
+
+            <span className="truncate">
+              {checkout.isPending
+                ? "Reserving..."
+                : "Buy now"}
+            </span>
           </Button>
         </div>
 
+        {/* Checkout error */}
         {checkout.isError && (
           <Alert className="mt-4" status="danger">
             <Alert.Content>
-              <Alert.Title>We could not start checkout</Alert.Title>
+              <Alert.Title>
+                We could not start checkout
+              </Alert.Title>
+
               <Alert.Description>
                 {getErrorMessage(checkout.error)}
               </Alert.Description>
@@ -264,18 +398,23 @@ export function PurchasePanel({
           </Alert>
         )}
 
-        <div className="mt-7 border-t border-current/10 pt-5">
+        {/* Share */}
+        <div className="mt-6 border-t border-current/10 pt-5 sm:mt-7">
           <p className="text-xs font-bold uppercase tracking-[0.16em] opacity-50">
             Share this product
           </p>
-          <div className="mt-3 flex flex-wrap gap-2">
+
+          <div className="-mx-1 mt-3 flex gap-2 overflow-x-auto px-1 pb-1">
             <Button
+              className="shrink-0"
               size="sm"
               type="button"
               variant="secondary"
               onPress={() =>
                 window.open(
-                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(shareUrl)}`,
+                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
+                    shareUrl,
+                  )}`,
                   "_blank",
                   "noopener,noreferrer",
                 )
@@ -283,13 +422,19 @@ export function PurchasePanel({
             >
               Facebook
             </Button>
+
             <Button
+              className="shrink-0"
               size="sm"
               type="button"
               variant="secondary"
               onPress={() =>
                 window.open(
-                  `https://twitter.com/intent/tweet?url=${encodeURIComponent(shareUrl)}&text=${encodeURIComponent(product.name)}`,
+                  `https://twitter.com/intent/tweet?url=${encodeURIComponent(
+                    shareUrl,
+                  )}&text=${encodeURIComponent(
+                    product.name,
+                  )}`,
                   "_blank",
                   "noopener,noreferrer",
                 )
@@ -297,7 +442,9 @@ export function PurchasePanel({
             >
               X
             </Button>
+
             <Button
+              className="shrink-0"
               size="sm"
               type="button"
               variant="secondary"
@@ -307,17 +454,26 @@ export function PurchasePanel({
                     title: product.name,
                     url: window.location.href,
                   });
+
                   setShareFeedback("Shared");
                 } else {
-                  await navigator.clipboard.writeText(window.location.href);
+                  await navigator.clipboard.writeText(
+                    window.location.href,
+                  );
+
                   setShareFeedback("Link copied");
                 }
               }}
             >
-              <Icon className="size-4" icon="gravity-ui:link" />
+              <Icon
+                className="size-4"
+                icon="gravity-ui:link"
+              />
+
               Share link
             </Button>
           </div>
+
           {shareFeedback && (
             <p className="mt-2 text-xs font-medium opacity-60">
               {shareFeedback}
@@ -346,44 +502,89 @@ function ProductOptionCard({
   price: string;
   sku: string;
 }) {
-  const status = isAvailable ? sku : "Sold out";
+  const status = isAvailable ? null : "Sold out";
 
   return (
     <Button
-      className="h-auto min-h-32 justify-start border p-0 text-left shadow-none"
+      className="
+        h-auto
+        min-h-12
+        w-full
+        justify-start
+        border
+        p-0
+        text-left
+        shadow-none
+      "
       isDisabled={!isAvailable}
       style={optionCardStyle(config, isSelected)}
       type="button"
       variant="secondary"
       onPress={onSelect}
     >
-      <span className="flex size-full flex-col justify-between gap-4 p-4">
-        <span className="flex items-start justify-between gap-3">
-          <span className="min-w-0">
-            <span className="block truncate font-semibold">{name}</span>
-            <span className="mt-1 block truncate text-xs opacity-55">
-              {status}
+      <div className="flex size-full flex-col justify-between gap-4 p-3.5 sm:p-4">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <span className="block truncate text-sm font-semibold sm:text-base">
+              {name}
             </span>
-          </span>
-          {isSelected && (
+
+            <span className="mt-1 block truncate text-xs opacity-55">
+              {status ?? sku}
+            </span>
+          </div>
+
+          {isSelected ? (
             <span
               className="grid size-6 shrink-0 place-items-center rounded-full text-white"
-              style={{ backgroundColor: config.colors.primary }}
+              style={{
+                backgroundColor: config.colors.primary,
+              }}
             >
-              <Icon className="size-3.5" icon="gravity-ui:check" />
+              <Icon
+                className="size-3.5"
+                icon="gravity-ui:check"
+              />
+            </span>
+          ) : (
+            <span
+              className="
+                grid
+                size-6
+                shrink-0
+                place-items-center
+                rounded-full
+                border
+                border-current/15
+                opacity-40
+              "
+            >
+              <Icon
+                className="size-3.5"
+                icon="gravity-ui:check"
+              />
             </span>
           )}
-        </span>
-        <span className="flex items-end justify-between gap-3">
-          <span className="text-xs font-medium opacity-50">Option</span>
-          <span className="font-semibold">{price}</span>
-        </span>
-      </span>
+        </div>
+
+        <div className="flex items-end justify-between gap-3">
+          <span className="text-xs font-medium opacity-50">
+            Option
+          </span>
+
+          <span className="text-sm font-semibold sm:text-base">
+            {price}
+          </span>
+        </div>
+      </div>
     </Button>
   );
 }
 
-function optionCardStyle(config: ThemeConfig, isSelected: boolean) {
+function optionCardStyle(
+  config: ThemeConfig,
+  isSelected: boolean,
+) {
   return {
     backgroundColor: isSelected
       ? `color-mix(in srgb, ${config.colors.primary} 10%, ${config.colors.background})`
@@ -391,7 +592,9 @@ function optionCardStyle(config: ThemeConfig, isSelected: boolean) {
     borderColor: isSelected
       ? config.colors.primary
       : `color-mix(in srgb, ${config.colors.text} 12%, transparent)`,
-    borderRadius: radiusValue(config.layout.borderRadius),
+    borderRadius: radiusValue(
+      config.layout.borderRadius,
+    ),
     color: config.colors.text,
   };
 }

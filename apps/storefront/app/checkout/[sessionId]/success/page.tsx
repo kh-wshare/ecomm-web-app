@@ -1,4 +1,4 @@
-import { CheckoutSuccess } from "@/components/checkout/checkout-success";
+import { CheckoutSuccessPage } from "@/components/checkout/checkout-success-page";
 
 export default async function CheckoutSuccessRoute({
   params,
@@ -7,5 +7,5 @@ export default async function CheckoutSuccessRoute({
 }) {
   const { sessionId } = await params;
 
-  return <CheckoutSuccess sessionId={sessionId} />;
+  return <CheckoutSuccessPage sessionId={sessionId} />;
 }

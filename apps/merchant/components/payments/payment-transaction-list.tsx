@@ -79,10 +79,10 @@ export function PaymentTransactionList() {
         )}
       </header>
 
-      <div className="grid gap-3 rounded-2xl border border-separator bg-surface p-4 sm:grid-cols-2 xl:grid-cols-5">
-        <div className="sm:col-span-2">
+      <div className="grid gap-2 rounded-2xl border border-separator bg-surface p-4 sm:grid-cols-2 xl:grid-cols-8">
+        <div className="sm:col-span-4">
           <SearchField name="search" value={filters.search}>
-            <Label>Transaction or order</Label>
+            <Label>Search</Label>
             <SearchField.Group className="bg-surface-secondary shadow-none">
               <SearchField.SearchIcon />
               <SearchField.Input
@@ -110,7 +110,7 @@ export function PaymentTransactionList() {
             update('status', value as PaymentTransactionStatus | 'ALL')
           }
         />
-        <div className="grid grid-cols-2 gap-2">
+        <div className="col-span-2 grid grid-cols-2 gap-2">
           <DateField
             label="From"
             value={filters.dateFrom}
@@ -124,7 +124,7 @@ export function PaymentTransactionList() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-separator bg-surface shadow-sm">
+      <div className="overflow-hidden rounded-2xl border border-separator bg-surface sm:grid-cols-4">
         <Table variant="secondary">
           <Table.ScrollContainer>
             <Table.Content
@@ -204,9 +204,10 @@ export function PaymentTransactionList() {
                     <Table.Cell className="px-4 py-4">
                       <Link
                         className="font-semibold hover:text-accent"
-                        href={`/orders/${payment.order.id}`}
+                        href={`/orders/${payment.orderId}`}
                       >
-                        {payment.order.orderNumber}
+                        {/* {payment.order.orderNumber} */}
+                        {payment.orderId}
                       </Link>
                     </Table.Cell>
                     <Table.Cell className="px-4 py-4 text-xs font-semibold">
@@ -324,15 +325,16 @@ function DateField({
   value: string;
 }) {
   return (
-    <label className="grid gap-1.5">
-      <span className="text-sm font-medium">{label}</span>
+    <div className="flex flex-col gap-1">
+      <Label className="text-sm font-medium">{label}</Label>
       <Input
+        className="bg-surface-secondary text-muted"
         variant="secondary"
         type="date"
         value={value}
         onChange={(event) => onChange(event.target.value)}
       />
-    </label>
+    </div>
   );
 }
 

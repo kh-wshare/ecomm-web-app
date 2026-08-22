@@ -101,27 +101,6 @@ export function InventoryTable() {
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
-          {canAdjust && selected.length > 0 && (
-            <>
-              <Button
-                className="h-10 rounded-xl border border-separator px-3 text-xs font-semibold disabled:opacity-50"
-                isDisabled={!selectedStock}
-                type="button"
-                onPress={() => {
-                  if (selectedStock) setAdjusting(selectedStock);
-                }}
-              >
-                Adjust selected ({selected.length})
-              </Button>
-              <Button
-                className="h-10 rounded-xl border border-separator px-3 text-xs font-semibold"
-                type="button"
-                onPress={() => setSelected([])}
-              >
-                Clear
-              </Button>
-            </>
-          )}
           <Link
             className="inline-flex h-10 items-center rounded-xl border border-separator px-3 text-xs font-semibold"
             href="/inventory/alerts"
@@ -137,8 +116,8 @@ export function InventoryTable() {
         </div>
       </header>
 
-      <div className="grid gap-4 rounded-2xl border border-separator bg-surface p-4 sm:grid-cols-4">
-        <div className="col-span-2 flex flex-col gap-1">
+      <div className="grid gap-2 rounded-2xl border border-separator bg-surface p-4 sm:grid-cols-5">
+        <div className="col-span-4 flex flex-col gap-1">
           <SearchField name="search" value={search}>
             <Label>Search</Label>
             <SearchField.Group className="bg-surface-secondary shadow-none">
@@ -180,25 +159,8 @@ export function InventoryTable() {
               onSelectionChange={updateSelection}
             >
               <Table.Header className="text-xs font-semibold text-muted">
-                {canAdjust && (
-                  <Table.Column
-                    className="w-12 rounded-b-none px-4 py-3"
-                    id="select"
-                  >
-                    <Checkbox
-                      aria-label="Select all inventory on this page"
-                      slot="selection"
-                    >
-                      <Checkbox.Content>
-                        <Checkbox.Control>
-                          <Checkbox.Indicator />
-                        </Checkbox.Control>
-                      </Checkbox.Content>
-                    </Checkbox>
-                  </Table.Column>
-                )}
                 <Table.Column
-                  className="w-[260px] px-4 py-3 font-medium"
+                  className="w-[260px] rounded-b-none px-4 py-3 font-medium"
                   id="product"
                   isRowHeader
                 >
@@ -418,21 +380,6 @@ function InventoryRow({
       className="border-t border-separator first:border-0 hover:bg-surface-secondary/30"
       id={stock.id}
     >
-      {canAdjust && (
-        <Table.Cell className="px-4 py-4">
-          <Checkbox
-            aria-label={`Select ${stock.product.name}`}
-            slot="selection"
-            variant="secondary"
-          >
-            <Checkbox.Content>
-              <Checkbox.Control>
-                <Checkbox.Indicator />
-              </Checkbox.Control>
-            </Checkbox.Content>
-          </Checkbox>
-        </Table.Cell>
-      )}
       <Table.Cell className="px-4 py-4">
         <div className="flex min-w-0 items-center gap-3">
           {/* <ProductAvatar

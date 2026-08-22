@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { Button, Modal, Radio, RadioGroup } from "@heroui/react";
+import { Button, Heading, Modal, Radio, RadioGroup } from "@heroui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -291,6 +291,7 @@ export function CheckoutPage({ sessionId }: { sessionId: string }) {
       {paymentAction && (
         <PaymentQrModal
           action={paymentAction}
+          context={context}
           onClose={() => setPaymentAction(null)}
           onDone={() => router.push(`/checkout/${sessionId}/success`)}
         />
@@ -299,47 +300,22 @@ export function CheckoutPage({ sessionId }: { sessionId: string }) {
   );
 }
 
-export function PaymentQrModal({ action, onClose }: { action: PaymentAction, onClose: () => void, onDone: () => void }) {
-  const qrSrc = action.qrImage
-    ? action.qrImage.startsWith("data:") || action.qrImage.startsWith("http")
-      ? action.qrImage
-      : `data:image/png;base64,${action.qrImage}`
-    : null;
-
+function PaymentQrModal({ action, context, onClose, onDone }: { action: PaymentAction, context: CheckoutContext, onClose: () => void, onDone: () => void }) {
   return (
-    <Modal.Backdrop isOpen={_.isNull(action) ? false : true}>
+    <Modal.Backdrop isOpen={!_.isNull(action)}>
       <Modal.Container>
-        <Modal.Dialog>
-          <Modal.CloseTrigger onClick={onClose}/>
+        <Modal.Dialog aria-label="Payment QR code">
+          <Modal.CloseTrigger onClick={onClose} />
+          <Modal.Header>
+            <Modal.Heading>
+              Scan to Pay
+            </Modal.Heading>
+          </Modal.Header>
           <Modal.Body>
-            {qrSrc && (
-              <div className="flex justify-center">
-                <img
-                  src={qrSrc}
-                  alt="Payment QR Code"
-                  className="h-56 w-56 rounded-xl border border-default-200 object-contain p-2 shadow-inner"
-                />
-              </div>
-            )}
-
-            {action.deepLink && (
-              <Link
-                as="a"
-                href={action.deepLink}
-                target="_blank"
-                rel="noopener noreferrer"
-                color="primary"
-                className="w-full font-semibold"
-              >
-                Open Banking App
-              </Link>
-            )}
-
-            {action.qrPayload && (
-              <div className="flex w-full flex-col items-center gap-3 rounded-2xl border border-default-200 bg-content1 p-4 shadow-sm">
-                <PaymentQr payload={action.qrPayload} />
-              </div>
-            )}
+            <Heading slot="title">
+              Scan to Pay
+            </Heading>
+            <PaymentQr action={action} context={context} onDone={onDone}/>
           </Modal.Body>
         </Modal.Dialog>
       </Modal.Container>
