@@ -6,7 +6,19 @@ const workspaceRoot = join(appDir, "../..");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ["127.0.0.1", "https://squishy-platter-pusher.ngrok-free.dev"],
+  allowedDevOrigins: ["127.0.0.1", "squishy-platter-pusher.ngrok-free.dev"],
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+      },
+      {
+        protocol: "https",
+        hostname: "d3nhsn9xe1wma5.cloudfront.net"
+      }
+    ],
+  },
   output: "standalone",
   outputFileTracingRoot: workspaceRoot,
   transpilePackages: [

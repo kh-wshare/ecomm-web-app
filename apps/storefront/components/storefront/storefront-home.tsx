@@ -11,17 +11,15 @@ import {
 } from "@/components/storefront/storefront-shell";
 
 export function StorefrontHome({
-  articles,
   products,
   storefront,
 }: {
-  articles: PublicArticle[];
   products: PublicProduct[];
   storefront: PublicStorefront;
 }) {
   const config = normalizeThemeConfig(storefront.theme.config);
   const enabledSections = config.sections.filter((section) => section.enabled);
-
+  
   return (
     <StorefrontShell config={config} merchant={storefront.merchant}>
       <main>
@@ -53,15 +51,6 @@ export function StorefrontHome({
                   merchant={storefront.merchant}
                   products={storefront.featuredProducts.slice(0, 4)}
                   title={config.featuredCollection.title}
-                />
-              );
-            case "socialFeed":
-              return (
-                <SocialFeed
-                  articles={articles}
-                  config={config}
-                  key={section.id}
-                  merchantSlug={storefront.merchant.slug}
                 />
               );
             case "contactForm":
@@ -309,7 +298,7 @@ function Footer({
 }) {
   return (
     <footer
-      className="mt-12 border-t px-5 py-10 text-center text-sm sm:px-8"
+      className="border-t px-5 py-10 text-center text-sm sm:px-8"
       style={{
         borderColor: `color-mix(in srgb, ${config.colors.text} 13%, transparent)`,
       }}
@@ -325,15 +314,27 @@ function spacingClass(
 ) {
   return {
     compact: "py-8",
-    comfortable: "py-12 sm:py-16",
-    spacious: "py-16 sm:py-24",
+    comfortable: "pb-12 sm:pb-16",
+    spacious: "pb-16 sm:pb-24",
   }[spacing];
 }
 
 function columnClass(columns: number) {
-  if (columns <= 2) return "sm:grid-cols-2";
-  if (columns === 3) return "sm:grid-cols-2 lg:grid-cols-3";
-  if (columns === 4) return "sm:grid-cols-2 lg:grid-cols-4";
-  if (columns === 5) return "sm:grid-cols-2 lg:grid-cols-5";
-  return "sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6";
+  if (columns <= 2) {
+    return "sm:grid-cols-2";
+  }
+
+  if (columns === 3) {
+    return "sm:grid-cols-2 lg:grid-cols-3";
+  }
+
+  if (columns === 4) {
+    return "sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+  }
+
+  if (columns === 5) {
+    return "sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+  }
+
+  return "sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6";
 }

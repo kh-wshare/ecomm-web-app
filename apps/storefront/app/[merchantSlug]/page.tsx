@@ -48,15 +48,13 @@ export default async function MerchantStorefrontPage({
 
   if (!isStorefrontSlug(merchantSlug)) notFound();
 
-  const [storefront, products, articles] = await Promise.all([
+  const [storefront, products] = await Promise.all([
     getPublicStorefront(merchantSlug),
     getPublicProducts(merchantSlug),
-    getPublicArticles(merchantSlug),
   ]);
 
   return (
     <StorefrontHome
-      articles={articles}
       products={products.items}
       storefront={storefront}
     />

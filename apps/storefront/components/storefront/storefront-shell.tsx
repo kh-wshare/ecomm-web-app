@@ -75,12 +75,13 @@ export function StorefrontShell({
             </span>
           </Link>
           <nav className="flex items-center gap-5 text-sm font-medium">
-            <Link href={`/${merchant.slug}#products`}>Shop</Link>
+            <Link href={`/${merchant.slug}/posts`}>Social</Link>
+            {/* <Link href={`/${merchant.slug}#products`}>Shop</Link>
             {merchant.email && (
               <a className="hidden sm:inline" href={`mailto:${merchant.email}`}>
                 Contact
               </a>
-            )}
+            )} */}
             <StorefrontCustomerAuth />
           </nav>
         </div>
