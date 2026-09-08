@@ -5,10 +5,7 @@ import type {
 } from "@/types/storefront";
 import { normalizeThemeConfig } from "@/lib/theme/theme-data";
 import { ProductCard } from "@/components/storefront/product-card";
-import {
-  radiusValue,
-  StorefrontShell,
-} from "@/components/storefront/storefront-shell";
+import { radiusValue } from "@/lib/theme/radius";
 
 export function StorefrontHome({
   products,
@@ -19,9 +16,8 @@ export function StorefrontHome({
 }) {
   const config = normalizeThemeConfig(storefront.theme.config);
   const enabledSections = config.sections.filter((section) => section.enabled);
-  
+
   return (
-    <StorefrontShell config={config} merchant={storefront.merchant}>
       <main>
         {enabledSections.map((section) => {
           switch (section.type) {
@@ -49,7 +45,7 @@ export function StorefrontHome({
                   config={config}
                   key={section.id}
                   merchant={storefront.merchant}
-                  products={storefront.featuredProducts.slice(0, 4)}
+                  products={storefront.featuredProducts.slice(0, 6)}
                   title={config.featuredCollection.title}
                 />
               );
@@ -72,7 +68,6 @@ export function StorefrontHome({
           }
         })}
       </main>
-    </StorefrontShell>
   );
 }
 
@@ -84,9 +79,9 @@ function Hero({
   merchantName: string;
 }) {
   return (
-    <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8 sm:py-12">
+    <section className="mx-auto max-w-7xl px-5 py-4 sm:px-8 sm:py-12">
       <div
-        className="relative isolate flex min-h-[440px] items-end overflow-hidden px-6 py-10 sm:min-h-[520px] sm:px-12 sm:py-14"
+        className="relative isolate flex min-h-[220px] items-end overflow-hidden px-5 py-6 sm:min-h-[520px] sm:px-12 sm:py-14"
         style={{
           backgroundColor: config.colors.primary,
           backgroundImage: config.hero.imageUrl
@@ -99,22 +94,22 @@ function Hero({
         }}
       >
         <div className="max-w-2xl">
-          <p className="text-xs font-bold uppercase tracking-[0.22em] opacity-75">
+          <p className="text-[10px] font-bold uppercase tracking-[0.2em] opacity-75 sm:text-xs sm:tracking-[0.22em]">
             {merchantName}
           </p>
           <h1
-            className="mt-4 text-4xl font-semibold tracking-tight sm:text-6xl"
+            className="mt-2 text-2xl font-semibold tracking-tight sm:mt-4 sm:text-6xl"
             style={{
               fontFamily: `${config.typography.headingFont}, ui-sans-serif, system-ui, sans-serif`,
             }}
           >
             {config.hero.title}
           </h1>
-          <p className="mt-5 max-w-xl text-base leading-7 opacity-85 sm:text-lg">
+          <p className="mt-2 max-w-xl text-sm leading-6 opacity-85 sm:mt-5 sm:text-lg sm:leading-7">
             {config.hero.subtitle}
           </p>
           <a
-            className="mt-8 inline-flex h-12 items-center rounded-full bg-white px-6 text-sm font-bold text-black"
+            className="mt-4 inline-flex h-10 items-center rounded-full bg-white px-5 text-xs font-bold text-black sm:mt-8 sm:h-12 sm:px-6 sm:text-sm"
             href="#products"
           >
             Explore products
@@ -162,7 +157,7 @@ function ProductGrid({
         </div>
         {products.length ? (
           <div
-            className={`grid gap-5 ${columnClass(config.layout.productGridColumns)}`}
+            className={`grid gap-3 sm:gap-5 ${columnClass(config.layout.productGridColumns)}`}
           >
             {products.map((product) => (
               <ProductCard
@@ -321,20 +316,20 @@ function spacingClass(
 
 function columnClass(columns: number) {
   if (columns <= 2) {
-    return "sm:grid-cols-2";
+    return "grid-cols-2";
   }
 
   if (columns === 3) {
-    return "sm:grid-cols-2 lg:grid-cols-3";
+    return "grid-cols-2 lg:grid-cols-3";
   }
 
   if (columns === 4) {
-    return "sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
+    return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
   }
 
   if (columns === 5) {
-    return "sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
+    return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
   }
 
-  return "sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6";
+  return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6";
 }

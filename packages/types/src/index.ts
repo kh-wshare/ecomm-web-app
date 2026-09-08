@@ -355,7 +355,7 @@ export type CreateCheckoutPayload = {
 export type CheckoutContext = {
   token: string;
   merchantSlug: string;
-  productSlug: string;
+  productSlug?: string;
   payment?: Pick<
     Payment,
     | 'id'

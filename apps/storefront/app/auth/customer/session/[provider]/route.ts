@@ -12,6 +12,7 @@ import type { AuthResult } from "@/types/auth";
 const providerPaths = {
   "firebase-google": "/auth/customer/login/firebase-google",
   telegram: "/auth/customer/login/telegram",
+  "telegram-mini-app": "/auth/customer/telegram/mini-app",
 } as const;
 
 export async function POST(

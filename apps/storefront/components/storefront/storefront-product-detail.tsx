@@ -4,7 +4,6 @@ import type { PublicProduct, PublicStorefront } from "@/types/storefront";
 import { normalizeThemeConfig } from "@/lib/theme/theme-data";
 import { ProductGallery } from "@/components/storefront/product-gallery";
 import { PurchasePanel } from "@/components/storefront/purchase-panel";
-import { StorefrontShell } from "@/components/storefront/storefront-shell";
 
 export function StorefrontProductDetail({
   product,
@@ -16,7 +15,6 @@ export function StorefrontProductDetail({
   const config = normalizeThemeConfig(storefront.theme.config);
 
   return (
-    <StorefrontShell config={config} merchant={storefront.merchant}>
       <main className="mx-auto max-w-7xl px-5 py-6 sm:px-8 sm:py-10">
         <Link
           className="inline-flex text-sm font-semibold"
@@ -38,6 +36,5 @@ export function StorefrontProductDetail({
           />
         </div>
       </main>
-    </StorefrontShell>
   );
 }

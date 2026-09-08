@@ -1,3 +1,4 @@
+import { cache } from "react";
 import { createServerApiClient } from "@repo/api-client";
 import type {
   ApiResponse,
@@ -11,30 +12,32 @@ import { env } from "@/lib/env";
 
 const apiClient = createServerApiClient({ env });
 
-export async function getPublicStorefront(merchantSlug: string) {
+export const getPublicStorefront = cache(async (merchantSlug: string) => {
   const response = await apiClient.get<ApiResponse<PublicStorefront>>(
     `/storefront/${merchantSlug}`,
     { cache: "no-store" },
   );
 
   return response.data;
-}
+});
 
 export async function getPublicProducts(
   merchantSlug: string,
+  limit = 6,
+  page = 1,
 ): Promise<PublicProductPage> {
   const response = await apiClient.get<ApiResponse<PublicProduct[]>>(
-    `/storefront/${merchantSlug}/products?page=1&limit=100`,
+    `/storefront/${merchantSlug}/products?page=${page}&limit=${limit}`,
     { cache: "no-store" },
   );
 
   return {
     items: response.data,
     meta: response.meta ?? {
-      limit: 100,
-      page: 1,
+      limit: limit,
+      page: page,
       total: response.data.length,
-      totalPages: response.data.length ? 1 : 0,
+      totalPages: response.data.length ? Math.ceil(response.data.length / limit) : 0,
       hasNext: false,
       hasPrev: false,
     },

@@ -18,16 +18,17 @@ import {
 } from "@/lib/auth/social-providers";
 import { getErrorMessage } from "@/lib/errors/api-error";
 import {
+  customerSessionQueryKey,
   getCustomerSession,
   loginCustomerSession,
   logoutCustomerSession,
 } from "@/lib/storefront/customer-session";
-
-const customerSessionQueryKey = ["storefront", "customer-session"];
+import { Icon } from "@iconify/react";
+import Link from "next/link";
 
 type SocialProvider = "firebase-google" | "telegram";
 
-export function StorefrontCustomerAuth() {
+export function StorefrontCustomerAuth({ slug }: { slug: string }) {
   const queryClient = useQueryClient();
 
   const [isLoginOpen, setIsLoginOpen] = useState(false);
@@ -91,73 +92,72 @@ export function StorefrontCustomerAuth() {
     const initials = getInitials(customer.user.fullName);
 
     return (
-      <Dropdown>
-        <Dropdown.Trigger>
-          <Button
-            isIconOnly
-            variant="ghost"
-            aria-label="Open profile menu"
-            className="rounded-full"
-          >
-            <Avatar size="sm">
-              {/* {customer.user.avatarUrl && (
-                <Avatar.Image
-                  src={customer.user.avatarUrl}
-                  alt={customer.user.fullName}
-                />
-              )} */}
-              <Avatar.Image
-                alt="Blue"
-                src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/blue.jpg"
-              />
+      <Link href={`/${slug}/profile`}>
+        <Avatar size="md">
+          <Avatar.Image
+            alt="Blue"
+            src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/blue.jpg"
+          />
 
-              <Avatar.Fallback>
-                {initials}
-              </Avatar.Fallback>
-            </Avatar>
-          </Button>
-        </Dropdown.Trigger>
+          <Avatar.Fallback>
+            {initials}
+          </Avatar.Fallback>
+        </Avatar>
+      </Link>
+      // <Dropdown>
+      //   <Dropdown.Trigger>
+      //     <Avatar size="lg">
+      //       <Avatar.Image
+      //         alt="Blue"
+      //         src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/blue.jpg"
+      //       />
 
-        <Dropdown.Popover>
-          <Dropdown.Menu
-            aria-label="Customer profile"
-            onAction={(key) => {
-              if (key === "logout") {
-                logout.mutate();
-              }
-            }}
-          >
-            <Dropdown.Item
-              id="profile"
-              textValue={customer.user.fullName}
-              isDisabled
-            >
-              <Label>
-                <span className="block font-semibold">
-                  {customer.user.fullName}
-                </span>
+      //       <Avatar.Fallback>
+      //         {initials}
+      //       </Avatar.Fallback>
+      //     </Avatar>
+      //   </Dropdown.Trigger>
 
-                {customer.user.email && (
-                  <span className="block text-xs text-muted">
-                    {customer.user.email}
-                  </span>
-                )}
-              </Label>
-            </Dropdown.Item>
+      //   <Dropdown.Popover>
+      //     <Dropdown.Menu
+      //       aria-label="Customer profile"
+      //       onAction={(key) => {
+      //         if (key === "logout") {
+      //           logout.mutate();
+      //         }
+      //       }}
+      //     >
+      //       <Dropdown.Item
+      //         id="profile"
+      //         textValue={customer.user.fullName}
+      //         isDisabled
+      //       >
+      //         <Label>
+      //           <span className="block font-semibold">
+      //             {customer.user.fullName}
+      //           </span>
 
-            <Dropdown.Item
-              id="logout"
-              textValue="Sign out"
-              variant="danger"
-              isDisabled={logout.isPending}
-            >
-              <Label>
-                {logout.isPending ? "Signing out..." : "Sign out"}
-              </Label>
-            </Dropdown.Item>
-          </Dropdown.Menu>
-        </Dropdown.Popover>
-      </Dropdown>
+      //           {customer.user.email && (
+      //             <span className="block text-xs text-muted">
+      //               {customer.user.email}
+      //             </span>
+      //           )}
+      //         </Label>
+      //       </Dropdown.Item>
+
+      //       <Dropdown.Item
+      //         id="logout"
+      //         textValue="Sign out"
+      //         variant="danger"
+      //         isDisabled={logout.isPending}
+      //       >
+      //         <Label>
+      //           {logout.isPending ? "Signing out..." : "Sign out"}
+      //         </Label>
+      //       </Dropdown.Item>
+      //     </Dropdown.Menu>
+      //   </Dropdown.Popover>
+      // </Dropdown>
     );
   }
 
@@ -166,7 +166,15 @@ export function StorefrontCustomerAuth() {
    */
   return (
     <>
-      <Button
+      <Avatar size="md" onClick={() => {
+        setProviderError(null);
+        setIsLoginOpen(true);
+      }}>
+        <Avatar.Fallback>
+          <Icon icon="solar:user-broken" className="size-6 transition-transform duration-200 group-hover:scale-110" />
+        </Avatar.Fallback>
+      </Avatar>
+      {/* <Button
         size="sm"
         variant="secondary"
         onPress={() => {
@@ -174,28 +182,30 @@ export function StorefrontCustomerAuth() {
           setIsLoginOpen(true);
         }}
       >
-        Login
-      </Button>
+        
+      </Button> */}
 
       <Modal
         isOpen={isLoginOpen}
         onOpenChange={setIsLoginOpen}
       >
         <Modal.Backdrop>
-          <Modal.Container placement="center">
-            <Modal.Dialog className="w-full max-w-sm">
+          <Modal.Container placement="bottom" className="p-0 sm:items-center sm:p-10">
+            <Modal.Dialog className="w-full max-w-full rounded-t-3xl rounded-b-none pb-[calc(env(safe-area-inset-bottom)+1.5rem)] sm:max-w-sm sm:rounded-3xl sm:pb-6">
               {({ close }) => (
                 <>
+                  <div className="mx-auto -mt-1 mb-3 h-1.5 w-10 shrink-0 rounded-full bg-default-200 sm:hidden" />
+
                   <Modal.CloseTrigger />
 
                   <Modal.Header>
-                    <div className="flex flex-col gap-1">
+                    <div className="flex flex-col items-center gap-1 text-center sm:items-start sm:text-left">
                       <h2 className="text-lg font-semibold">
                         Welcome back
                       </h2>
 
                       <p className="text-sm text-muted">
-                        Sign in to continue
+                        Sign in to continue shopping
                       </p>
                     </div>
                   </Modal.Header>
@@ -213,6 +223,8 @@ export function StorefrontCustomerAuth() {
                       <Button
                         size="lg"
                         variant="secondary"
+                        fullWidth
+                        className="h-13 justify-center gap-3 border border-default-200 bg-white text-base font-medium text-zinc-900 shadow-sm hover:bg-zinc-50 active:scale-[0.98] dark:bg-white dark:text-zinc-900"
                         isDisabled={
                           !socialProviderConfig.firebaseConfigured ||
                           login.isPending
@@ -221,12 +233,14 @@ export function StorefrontCustomerAuth() {
                           void startSocialLogin("firebase-google")
                         }
                       >
+                        <Icon icon="flat-color-icons:google" className="size-5 shrink-0" />
                         Continue with Google
                       </Button>
 
                       <Button
                         size="lg"
-                        variant="secondary"
+                        fullWidth
+                        className="h-13 justify-center gap-3 bg-[#229ED9] text-base font-medium text-white shadow-sm hover:bg-[#1d8bc0] active:scale-[0.98]"
                         isDisabled={
                           !socialProviderConfig.telegramConfigured ||
                           login.isPending
@@ -235,6 +249,7 @@ export function StorefrontCustomerAuth() {
                           void startSocialLogin("telegram")
                         }
                       >
+                        <Icon icon="mdi:telegram" className="size-5 shrink-0" />
                         Continue with Telegram
                       </Button>
 
@@ -243,6 +258,10 @@ export function StorefrontCustomerAuth() {
                           Signing you in...
                         </p>
                       )}
+
+                      <p className="mt-1 text-center text-[11px] leading-4 text-muted">
+                        By continuing, you agree to our terms and privacy policy.
+                      </p>
                     </div>
                   </Modal.Body>
                 </>

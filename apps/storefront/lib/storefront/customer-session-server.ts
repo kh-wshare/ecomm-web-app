@@ -7,12 +7,18 @@ export const CUSTOMER_ACCESS_COOKIE = "customer_access_token";
 export const CUSTOMER_REFRESH_COOKIE = "customer_refresh_token";
 export const CUSTOMER_SESSION_COOKIE = "customer_session";
 
-const isProduction = process.env.NODE_ENV === "production";
+// Telegram Mini Apps (and any other embedded/iframed context) load this app
+// inside a cross-site frame. SameSite=Lax cookies are not sent on requests
+// made from a cross-site top-level context, so the session cookie set here
+// would never come back on subsequent requests — the session appears to be
+// "blocked" for anyone using the storefront as a Telegram Mini App. None
+// removes that restriction; browsers require Secure whenever SameSite=None
+// is used, so it must always be true (not just in production).
 const cookieBase = {
   httpOnly: true,
   path: "/",
-  sameSite: "lax",
-  secure: isProduction,
+  sameSite: "none",
+  secure: true,
 } satisfies Partial<ResponseCookie>;
 
 export function normalizeCustomerSession(auth: AuthResult): CustomerSession {

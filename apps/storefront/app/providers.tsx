@@ -9,6 +9,7 @@ import { ThemeProvider as NextThemesProvider } from "next-themes";
 import { useState } from "react";
 
 import { createQueryClient } from "@repo/query-client";
+import { TelegramAuthProvider } from "@/components/auth/telegram-auth-provider";
 
 type ProvidersProps = {
   children: ReactNode;
@@ -21,7 +22,9 @@ export function Providers({ children, themeProps }: ProvidersProps) {
   return (
     <QueryClientProvider client={queryClient}>
       <NextThemesProvider {...themeProps}>
-        {children}
+        <TelegramAuthProvider>
+          {children}
+        </TelegramAuthProvider>
         <ToastProvider placement="top end" />
       </NextThemesProvider>
     </QueryClientProvider>

@@ -4,7 +4,7 @@ import { Image } from "@heroui/image";
 import type { PublicMerchant, PublicProduct } from "@/types/storefront";
 import type { ThemeConfig } from "@/types/theme";
 import { formatCurrency } from "@/lib/formatters/currency";
-import { radiusValue } from "@/components/storefront/storefront-shell";
+import { radiusValue } from "@/lib/theme/radius";
 
 export function ProductCard({
   config,

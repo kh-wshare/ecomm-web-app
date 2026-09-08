@@ -1,6 +1,6 @@
 "use client";
 
-import { createBrowserApiClient } from "@repo/api-client";
+import { createBrowserApiClient, unwrapApiResponseData } from "@repo/api-client";
 
 import { env } from "@/lib/env";
 
@@ -211,12 +211,18 @@ async function exchangeTelegramCode(options: {
   codeVerifier: string;
   redirectUri: string;
 }) {
-  const response = await apiClient.post<{ idToken: string }, typeof options>(
+  const response = await apiClient.post<unknown, typeof options>(
     "/auth/telegram/token",
     options,
   );
 
-  return response.idToken;
+  const idToken = unwrapApiResponseData<{ idToken?: string }>(response).idToken;
+
+  if (typeof idToken !== "string" || !idToken) {
+    throw new Error("Telegram did not return a valid sign-in token.");
+  }
+
+  return idToken;
 }
 
 function telegramRedirectUri() {

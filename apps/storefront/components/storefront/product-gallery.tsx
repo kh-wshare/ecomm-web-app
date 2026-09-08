@@ -5,7 +5,7 @@ import { useState } from "react";
 
 import type { PublicProductMedia } from "@/types/storefront";
 import type { ThemeConfig } from "@/types/theme";
-import { radiusValue } from "@/components/storefront/storefront-shell";
+import { radiusValue } from "@/lib/theme/radius";
 
 export function ProductGallery({
   config,

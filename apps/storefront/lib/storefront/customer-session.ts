@@ -3,6 +3,8 @@ import { unwrapApiResponseData } from "@repo/api-client";
 
 const CUSTOMER_SESSION_BASE_PATH = "/auth/customer/session";
 
+export const customerSessionQueryKey = ["storefront", "customer-session"] as const;
+
 export async function getCustomerSession() {
   const response = await fetch(`${CUSTOMER_SESSION_BASE_PATH}/me`, {
     credentials: "include",
@@ -32,6 +34,29 @@ export async function loginCustomerSession({
 
   if (!response.ok) {
     throw new Error(await responseMessage(response, "Unable to sign in."));
+  }
+
+  return unwrapApiResponseData<CustomerSession>(await response.json());
+}
+
+export async function loginTelegramMiniAppSession(initData: string) {
+  let response: Response;
+
+  try {
+    response = await fetch(`${CUSTOMER_SESSION_BASE_PATH}/telegram-mini-app`, {
+      body: JSON.stringify({ initData }),
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
+      method: "POST",
+    });
+  } catch {
+    throw new Error("Unable to connect to the server. Please try again.");
+  }
+
+  if (!response.ok) {
+    throw new Error(
+      await responseMessage(response, "Unable to authenticate with Telegram."),
+    );
   }
 
   return unwrapApiResponseData<CustomerSession>(await response.json());

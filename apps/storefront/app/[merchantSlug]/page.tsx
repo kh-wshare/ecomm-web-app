@@ -3,7 +3,6 @@ import { notFound } from "next/navigation";
 
 import { StorefrontHome } from "@/components/storefront/storefront-home";
 import {
-  getPublicArticles,
   getPublicProducts,
   getPublicStorefront,
 } from "@/lib/storefront/storefront-data";

@@ -8,10 +8,9 @@ import {
     getPublicStorefront,
 } from "@/lib/storefront/storefront-data";
 import { isStorefrontSlug } from "@/lib/storefront/slug";
+import { radiusValue } from "@/lib/theme/radius";
 import { normalizeThemeConfig } from "@/lib/theme/theme-data";
 import { PublicArticle } from "@/types/storefront";
-import { ThemeConfig } from "@/types/theme";
-import { StorefrontShell } from "@/components/storefront/storefront-shell";
 
 export async function generateMetadata({
     params,
@@ -59,14 +58,12 @@ export default async function SocialPage({
     const config = normalizeThemeConfig(storefront.theme.config);
 
     return (
-        <StorefrontShell config={config} merchant={storefront.merchant}>
-            <SocialFeed
-                articles={articles}
-                config={config}
-                key={1}
-                merchantSlug={storefront.merchant.slug}
-            />
-        </StorefrontShell>
+        <SocialFeed
+            articles={articles}
+            config={config}
+            key={1}
+            merchantSlug={storefront.merchant.slug}
+        />
     );
 }
 
@@ -83,7 +80,7 @@ function SocialFeed({
 
     return (
         <section className={spacingClass(config.layout.spacing)}>
-            <div className="mx-auto max-w-7xl px-5 sm:px-8">
+            <div className="mx-auto max-w-7xl px-5 mt-4 sm:px-8">
                 <h2
                     className="text-3xl font-semibold tracking-tight"
                     style={{
@@ -140,14 +137,5 @@ function spacingClass(
         comfortable: "pb-12 sm:pb-16",
         spacious: "pb-16 sm:pb-24",
     }[spacing];
-}
-
-export function radiusValue(radius: ThemeConfig["layout"]["borderRadius"]) {
-    return {
-        none: "0",
-        small: "0.5rem",
-        medium: "1rem",
-        large: "1.75rem",
-    }[radius];
 }
 

@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import type { ReactNode } from "react";
+import Script from "next/script";
 
 import "@repo/ui/styles.css";
 
@@ -18,6 +19,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html suppressHydrationWarning lang="en">
       <body className="min-h-dvh bg-background text-foreground antialiased">
+        <Script src="https://telegram.org/js/telegram-web-app.js" strategy="beforeInteractive" />
         <Providers
           themeProps={{
             attribute: "class",

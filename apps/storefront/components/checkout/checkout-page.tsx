@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useSyncExternalStore } from "react";
-import { Button, Heading, Modal, Radio, RadioGroup } from "@heroui/react";
+import { Button, Modal, Radio, RadioGroup } from "@heroui/react";
 import { useMutation, useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -116,9 +116,13 @@ export function CheckoutPage({ sessionId }: { sessionId: string }) {
         action={
           <Link
             className="rounded-full bg-zinc-950 px-5 py-2.5 text-sm font-semibold text-white"
-            href={`/${context.merchantSlug}/products/${context.productSlug}`}
+            href={
+              context.productSlug
+                ? `/${context.merchantSlug}/products/${context.productSlug}`
+                : `/${context.merchantSlug}/cart`
+            }
           >
-            Return to product
+            {context.productSlug ? "Return to product" : "Return to cart"}
           </Link>
         }
         description="Reserved stock has been released. Start a new checkout to refresh availability and pricing."
@@ -300,22 +304,44 @@ export function CheckoutPage({ sessionId }: { sessionId: string }) {
   );
 }
 
-function PaymentQrModal({ action, context, onClose, onDone }: { action: PaymentAction, context: CheckoutContext, onClose: () => void, onDone: () => void }) {
+function PaymentQrModal({
+  action,
+  context,
+  onClose,
+  onDone,
+}: {
+  action: PaymentAction;
+  context: CheckoutContext;
+  onClose: () => void;
+  onDone: () => void;
+}) {
   return (
     <Modal.Backdrop isOpen={!_.isNull(action)}>
       <Modal.Container>
-        <Modal.Dialog aria-label="Payment QR code">
+        <Modal.Dialog
+          aria-label="Payment QR code"
+          className="w-[min(92vw,420px)] overflow-hidden rounded-2xl"
+        >
           <Modal.CloseTrigger onClick={onClose} />
-          <Modal.Header>
-            <Modal.Heading>
+
+          <Modal.Header className="flex flex-col items-center gap-1 px-6 pb-3 pt-6 text-center">
+            <Modal.Heading className="text-xl font-semibold">
               Scan to Pay
             </Modal.Heading>
+
+            <p className="text-sm text-default-500">
+              Scan the QR code with your banking app to complete your payment.
+            </p>
           </Modal.Header>
-          <Modal.Body>
-            <Heading slot="title">
-              Scan to Pay
-            </Heading>
-            <PaymentQr action={action} context={context} onDone={onDone}/>
+
+          <Modal.Body className="flex items-center justify-center px-5 pb-6 pt-3">
+            <div className="flex w-full items-center justify-center">
+              <PaymentQr
+                action={action}
+                context={context}
+                onDone={onDone}
+              />
+            </div>
           </Modal.Body>
         </Modal.Dialog>
       </Modal.Container>

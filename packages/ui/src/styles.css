@@ -59,3 +59,87 @@
     text-rendering: optimizeLegibility;
   }
 }
+
+@keyframes storefront-bottom-bar-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.storefront-bottom-bar {
+  animation: storefront-bottom-bar-in 0.45s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storefront-bottom-bar {
+    animation: none;
+  }
+}
+
+@keyframes storefront-cart-bar-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.96);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.storefront-cart-bar {
+  animation: storefront-cart-bar-in 0.28s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .storefront-cart-bar {
+    animation: none;
+  }
+}
+
+/*
+ * HeroUI's Modal drives its open/close motion with keyframe `animation`
+ * (animate-in/animate-out), not a CSS `transition` — so `duration-*`/`ease-*`
+ * utility classes on Modal.Container/Modal.Dialog have no effect (those only
+ * touch transition-duration/transition-timing-function). @heroui/styles also
+ * ships its component rules inside `@layer components`, so they lose to any
+ * Tailwind utility class regardless of specificity or source order anyway.
+ * These overrides are plain, unlayered CSS targeting HeroUI's own selectors
+ * directly — unlayered rules always win over layered ones, so this reliably
+ * overrides just the timing (duration/easing), not the animation itself.
+ */
+.modal__backdrop[data-entering="true"] {
+  animation-duration: 260ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal__backdrop[data-exiting="true"] {
+  animation-duration: 200ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+.modal__container[data-entering="true"] {
+  animation-duration: 340ms;
+  animation-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.modal__container[data-exiting="true"] {
+  animation-duration: 220ms;
+  animation-timing-function: cubic-bezier(0.4, 0, 1, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal__backdrop[data-entering="true"],
+  .modal__backdrop[data-exiting="true"],
+  .modal__container[data-entering="true"],
+  .modal__container[data-exiting="true"] {
+    animation-duration: 1ms;
+  }
+}

@@ -13,8 +13,9 @@ import { createCheckoutSession } from "@/lib/checkout/checkout-data";
 import { checkoutStorage } from "@/lib/checkout/checkout-storage";
 import { formatCurrency } from "@/lib/formatters/currency";
 import { getErrorMessage } from "@/lib/errors/api-error";
-import { radiusValue } from "@/components/storefront/storefront-shell";
+import { radiusValue } from "@/lib/theme/radius";
 import { getCustomerSession } from "@/lib/storefront/customer-session";
+import { cartStore } from "@/lib/cart/cart-storage";
 
 export function PurchasePanel({
   config,
@@ -34,6 +35,7 @@ export function PurchasePanel({
 
   const [quantity, setQuantity] = useState(1);
   const [shareFeedback, setShareFeedback] = useState("");
+  const [justAddedToCart, setJustAddedToCart] = useState(false);
 
   const selectedVariant = product.variants.find(
     (variant) => variant.id === variantId,
@@ -91,6 +93,26 @@ export function PurchasePanel({
       router.push(`/checkout/${session.id}`);
     },
   });
+
+  const handleAddToCart = () => {
+    cartStore.addItem(merchantSlug, {
+      productId: product.id,
+      ...(selectedVariant ? { variantId: selectedVariant.id } : {}),
+      productSlug: product.slug,
+      name: product.name,
+      ...(selectedVariant ? { variantName: selectedVariant.name } : {}),
+      ...(product.media.find((media) => media.type === "IMAGE")
+        ? { image: product.media.find((media) => media.type === "IMAGE")!.url }
+        : {}),
+      sku: selectedVariant?.sku ?? product.sku,
+      price: selectedVariant?.price ?? product.price,
+      currency: product.currency,
+      quantity,
+    });
+
+    setJustAddedToCart(true);
+    window.setTimeout(() => setJustAddedToCart(false), 1500);
+  };
 
   const shareUrl = `${env.NEXT_PUBLIC_STOREFRONT_URL}/${merchantSlug}/products/${product.slug}`;
 
@@ -347,7 +369,7 @@ export function PurchasePanel({
             </Button>
           </div>
 
-          {/* Buy */}
+          {/* Add to cart */}
           <Button
             className="
               h-12
@@ -356,32 +378,46 @@ export function PurchasePanel({
               px-3
               text-sm
               font-bold
-              text-white
               sm:px-6
             "
             isDisabled={!canBuy || checkout.isPending}
-            variant="primary"
+            variant="secondary"
             style={{
-              backgroundColor: config.colors.primary,
               borderRadius: radiusValue(
                 config.layout.borderRadius,
               ),
             }}
             type="button"
-            onPress={() => checkout.mutate()}
+            onPress={handleAddToCart}
           >
             <Icon
               className="size-4 shrink-0"
-              icon="gravity-ui:shopping-cart"
+              icon={justAddedToCart ? "gravity-ui:check" : "gravity-ui:bag"}
             />
 
             <span className="truncate">
-              {checkout.isPending
-                ? "Reserving..."
-                : "Buy now"}
+              {justAddedToCart ? "Added" : "Add to cart"}
             </span>
           </Button>
         </div>
+
+        {/* Buy now */}
+        <Button
+          className="mt-2 h-12 w-full text-sm font-bold text-white sm:mt-3"
+          isDisabled={!canBuy || checkout.isPending}
+          variant="primary"
+          style={{
+            backgroundColor: config.colors.primary,
+            borderRadius: radiusValue(config.layout.borderRadius),
+          }}
+          type="button"
+          onPress={() => checkout.mutate()}
+        >
+          <Icon className="size-4 shrink-0" icon="gravity-ui:shopping-cart" />
+          <span className="truncate">
+            {checkout.isPending ? "Reserving..." : "Buy now"}
+          </span>
+        </Button>
 
         {/* Checkout error */}
         {checkout.isError && (
