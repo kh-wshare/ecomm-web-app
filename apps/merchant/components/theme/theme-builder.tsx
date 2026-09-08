@@ -1,6 +1,15 @@
 'use client';
 
-import { Button, Checkbox, Input, Label, ListBox, Select } from '@heroui/react';
+import {
+  Button,
+  Checkbox,
+  Description,
+  Input,
+  Label,
+  ListBox,
+  Select,
+  TextField,
+} from '@heroui/react';
 import { useEffect, useState } from 'react';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import Link from 'next/link';
@@ -9,6 +18,8 @@ import {
   DevicePreviewToggle,
   PublishThemeButton,
 } from './theme-builder-shared';
+import { ThemeColorPicker } from './theme-color-picker';
+import { ThemeGridColumns } from './theme-grid-columns';
 
 import type { CurrentTheme, ThemeConfig, ThemeSection } from '@/types/theme';
 import { ConfirmDialog } from '@repo/ui';
@@ -206,13 +217,13 @@ function ThemeEditor({ theme }: { theme: CurrentTheme }) {
             </Panel>
 
             <Panel title="Design tokens">
-              <div className="grid grid-cols-2 gap-4">
+              <FieldGroup label="Colours">
                 {(
                   Object.keys(config.colors) as Array<
                     keyof ThemeConfig['colors']
                   >
                 ).map((token) => (
-                  <ColorTokenField
+                  <ThemeColorPicker
                     key={token}
                     label={token}
                     value={config.colors[token]}
@@ -226,6 +237,9 @@ function ThemeEditor({ theme }: { theme: CurrentTheme }) {
                     }
                   />
                 ))}
+              </FieldGroup>
+
+              <FieldGroup label="Typography">
                 <SelectField
                   label="Heading font"
                   value={config.typography.headingFont}
@@ -249,6 +263,9 @@ function ThemeEditor({ theme }: { theme: CurrentTheme }) {
                     patch({ typography: { ...config.typography, bodyFont } })
                   }
                 />
+              </FieldGroup>
+
+              <FieldGroup label="Layout">
                 <SelectField
                   label="Border radius"
                   value={config.layout.borderRadius}
@@ -276,7 +293,7 @@ function ThemeEditor({ theme }: { theme: CurrentTheme }) {
                     })
                   }
                 />
-              </div>
+              </FieldGroup>
             </Panel>
 
             <Panel title="Sections">
@@ -442,24 +459,28 @@ function SectionContent({
     { key: 'contactForm', label: 'Contact form title' },
   ];
   return (
-    <div className="mt-4 grid gap-4 border-t border-separator pt-4">
-      <TextField
+    <div className="mt-5 grid gap-4 border-t border-separator pt-5">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted">
+        Section content
+      </p>
+      <ThemeTextField
         label="Hero title"
         value={config.hero.title}
         onChange={(title) => patch({ hero: { ...config.hero, title } })}
       />
-      <TextField
+      <ThemeTextField
         label="Hero subtitle"
         value={config.hero.subtitle}
         onChange={(subtitle) => patch({ hero: { ...config.hero, subtitle } })}
       />
-      <TextField
+      <ThemeTextField
+        description="Publicly reachable image URL. Leave empty to use the primary colour."
         label="Hero image URL"
+        placeholder="https://cdn.example.com/hero.jpg"
         value={config.hero.imageUrl}
         onChange={(imageUrl) => patch({ hero: { ...config.hero, imageUrl } })}
       />
-      <GridColumnsSelect
-        label="Product grid columns"
+      <ThemeGridColumns
         value={config.layout.productGridColumns}
         onChange={(productGridColumns) =>
           patch({
@@ -471,7 +492,7 @@ function SectionContent({
         }
       />
       {fields.map(({ key, label }) => (
-        <TextField
+        <ThemeTextField
           key={key}
           label={label}
           value={config[key].title}
@@ -482,85 +503,11 @@ function SectionContent({
           }
         />
       ))}
-      <TextField
+      <ThemeTextField
         label="Footer text"
         value={config.footer.text}
         onChange={(text) => patch({ footer: { text } })}
       />
-    </div>
-  );
-}
-
-function ColorTokenField({
-  label,
-  value,
-  onChange,
-}: {
-  label: keyof ThemeConfig['colors'];
-  value: string;
-  onChange: (value: string) => void;
-}) {
-  return (
-    <label className="grid gap-1.5 text-xs font-medium capitalize">
-      <span>{label}</span>
-      <span className="relative grid h-11 grid-cols-[44px_minmax(0,1fr)] items-center overflow-hidden rounded-xl border border-separator bg-background transition focus-within:border-accent">
-        <span
-          aria-hidden
-          className="mx-2 size-7 rounded-lg border border-black/10 shadow-inner"
-          style={{ backgroundColor: value }}
-        />
-        <span className="truncate pr-3 font-mono text-xs text-muted">
-          {value}
-        </span>
-        <input
-          aria-label={`${label} color`}
-          className="absolute inset-0 cursor-pointer opacity-0"
-          type="color"
-          value={value}
-          onChange={(event) => onChange(event.target.value)}
-        />
-      </span>
-    </label>
-  );
-}
-
-function GridColumnsSelect({
-  label,
-  value,
-  onChange,
-}: {
-  label: string;
-  value: number;
-  onChange: (value: number) => void;
-}) {
-  const options = [2, 3, 4, 6];
-  return (
-    <div className="grid gap-2">
-      <div className="flex items-center justify-between gap-3">
-        <Label className="text-xs font-medium">{label}</Label>
-        <span className="rounded-lg bg-surface-secondary px-2 py-1 font-mono text-xs text-muted">
-          {value} grid
-        </span>
-      </div>
-      <div className="grid grid-cols-4 gap-2 rounded-xl border border-separator bg-background p-1">
-        {options.map((columns) => {
-          const isSelected = value === columns;
-
-          return (
-            <Button
-              className={`h-9 rounded-lg px-2 text-xs font-semibold ${
-                isSelected ? '' : 'bg-transparent'
-              }`}
-              key={columns}
-              type="button"
-              variant={isSelected ? 'primary' : 'tertiary'}
-              onPress={() => onChange(columns)}
-            >
-              {columns} grid
-            </Button>
-          );
-        })}
-      </div>
     </div>
   );
 }
@@ -708,25 +655,49 @@ function Panel({
   );
 }
 
-function TextField({
+function FieldGroup({
+  children,
   label,
+}: {
+  children: React.ReactNode;
+  label: string;
+}) {
+  return (
+    <div className="mb-5 last:mb-0">
+      <p className="mb-2.5 text-xs font-semibold uppercase tracking-wide text-muted">
+        {label}
+      </p>
+      <div className="grid grid-cols-2 gap-4">{children}</div>
+    </div>
+  );
+}
+
+function ThemeTextField({
+  description,
+  label,
+  placeholder,
   value,
   onChange,
 }: {
+  description?: string;
   label: string;
+  placeholder?: string;
   value: string;
   onChange: (value: string) => void;
 }) {
   return (
-    <label className="grid gap-1.5 text-xs font-medium">
-      <span>{label}</span>
+    <TextField className="w-full" value={value} onChange={onChange}>
+      <Label className="mb-1.5 block text-sm font-medium">{label}</Label>
       <Input
-        className="h-10 rounded-xl border border-separator bg-background px-3 text-sm shadow-none transition focus-within:border-accent"
-        value={value}
-        variant="secondary"
-        onChange={(event) => onChange(event.target.value)}
+        className="h-10 rounded-xl border border-separator bg-background px-3 text-sm shadow-none"
+        placeholder={placeholder}
       />
-    </label>
+      {description && (
+        <Description className="mt-1.5 text-xs text-muted">
+          {description}
+        </Description>
+      )}
+    </TextField>
   );
 }
 
@@ -750,7 +721,7 @@ function SelectField({
         if (typeof nextValue === 'string') onChange(nextValue);
       }}
     >
-      <Label className="mb-1.5 block text-xs font-medium">{label}</Label>
+      <Label className="mb-1.5 block text-sm font-medium">{label}</Label>
       <Select.Trigger className="h-10 rounded-xl border border-separator bg-background px-3 text-sm shadow-none transition hover:bg-surface-secondary/50 data-[focus-visible=true]:outline data-[focus-visible=true]:outline-2 data-[focus-visible=true]:outline-offset-2 data-[focus-visible=true]:outline-accent">
         <Select.Value className="truncate capitalize" />
         <Select.Indicator className="text-muted" />

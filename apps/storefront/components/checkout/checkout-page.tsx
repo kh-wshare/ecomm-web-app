@@ -146,7 +146,7 @@ export function CheckoutPage({ sessionId }: { sessionId: string }) {
           </div>
         </header>
 
-        <div className="mt-8 grid gap-7 lg:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="mt-8 grid gap-7 md:grid-cols-[minmax(0,1fr)_380px]">
           <section className="space-y-6">
             <div>
               <p className="text-xs font-bold uppercase tracking-[0.2em] text-zinc-500">
@@ -243,7 +243,7 @@ export function CheckoutPage({ sessionId }: { sessionId: string }) {
             )}
           </section>
 
-          <aside className="lg:sticky lg:top-8 lg:self-start">
+          <aside className="md:sticky md:top-8 md:self-start">
             <div className="rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm">
               <h2 className="font-semibold">Order summary</h2>
               <dl className="mt-5 space-y-3 text-sm">
@@ -412,7 +412,7 @@ function SummaryRow({ label, value }: { label: string; value: string }) {
 function CheckoutLoading() {
   return (
     <main className="min-h-dvh bg-zinc-50 px-5 py-10">
-      <div className="mx-auto grid max-w-6xl gap-7 lg:grid-cols-[1fr_380px]">
+      <div className="mx-auto grid max-w-6xl gap-7 md:grid-cols-[1fr_380px]">
         <div className="h-[620px] animate-pulse rounded-2xl bg-zinc-200" />
         <div className="h-96 animate-pulse rounded-2xl bg-zinc-200" />
       </div>

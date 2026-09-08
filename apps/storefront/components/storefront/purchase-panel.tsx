@@ -143,7 +143,7 @@ export function PurchasePanel({
 
   return (
     <Card
-      className="w-full shadow-none lg:sticky lg:top-28"
+      className="w-full shadow-none md:sticky md:top-28"
       variant="secondary"
       style={{
         borderRadius: radiusValue(config.layout.borderRadius),

@@ -1,6 +1,15 @@
 "use client";
 
-import { Button, Form, Input, TextArea } from "@heroui/react";
+import {
+  Button,
+  Description,
+  FieldError,
+  Form,
+  Input,
+  Label,
+  TextArea,
+  TextField,
+} from "@heroui/react";
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import Link from "next/link";
@@ -181,6 +190,7 @@ function SettingsForm({
             onChange={(value) => update("name", value)}
           />
           <Field
+            description="Used in your storefront URL."
             error={errors.slug?.[0]}
             label="Store slug"
             value={values.slug}
@@ -189,6 +199,7 @@ function SettingsForm({
           <Field
             className="sm:col-span-2"
             error={errors.customDomain?.[0]}
+            description="Optional. Point a CNAME at your storefront first."
             label="Custom domain"
             placeholder="shop.example.com"
             value={values.customDomain}
@@ -203,27 +214,35 @@ function SettingsForm({
       >
         <div className="space-y-4">
           <Field
+            description="Shown as the clickable headline in search results."
             error={errors.seoTitle?.[0]}
             label="SEO title"
             maxLength={70}
             value={values.seoTitle}
             onChange={(value) => update("seoTitle", value)}
           />
-          <label className="block">
-            <span className="mb-1.5 block text-sm font-medium">
+          <TextField
+            isInvalid={Boolean(errors.seoDescription?.[0])}
+            value={values.seoDescription}
+            onChange={(value) => update("seoDescription", value)}
+          >
+            <Label className="mb-1.5 block text-sm font-medium">
               SEO description
-            </span>
+            </Label>
             <TextArea
-              className="min-h-24"
+              className="min-h-24 rounded-xl border border-separator bg-background px-3 py-2 text-sm shadow-none"
               maxLength={160}
-              variant="secondary"
-              value={values.seoDescription}
-              onChange={(event) => update("seoDescription", event.target.value)}
+              placeholder="A short summary shown under your store name in search results."
             />
-            <span className="mt-1 block text-right text-[10px] text-muted">
-              {values.seoDescription.length}/160
-            </span>
-          </label>
+            <div className="mt-1.5 flex items-start justify-between gap-3">
+              <FieldError className="text-xs text-danger">
+                {errors.seoDescription?.[0]}
+              </FieldError>
+              <span className="ml-auto shrink-0 font-mono text-[10px] text-muted">
+                {values.seoDescription.length}/160
+              </span>
+            </div>
+          </TextField>
         </div>
       </SettingsPanel>
 
@@ -269,27 +288,46 @@ function SettingsPanel({
 }
 
 function Field({
+  className,
+  description,
   error,
   label,
+  maxLength,
+  placeholder,
+  value,
   onChange,
-  className,
-  ...props
-}: Omit<React.InputHTMLAttributes<HTMLInputElement>, "onChange"> & {
+}: {
+  className?: string;
+  description?: string;
   error?: string;
   label: string;
+  maxLength?: number;
+  placeholder?: string;
+  value: string;
   onChange: (value: string) => void;
 }) {
   return (
-    <label className={className}>
-      <span className="mb-1.5 block text-sm font-medium">{label}</span>
+    <TextField
+      className={className}
+      isInvalid={Boolean(error)}
+      value={value}
+      onChange={onChange}
+    >
+      <Label className="mb-1.5 block text-sm font-medium">{label}</Label>
       <Input
-        {...props}
-        aria-invalid={Boolean(error) || undefined}
-        variant="secondary"
-        onChange={(event) => onChange(event.target.value)}
+        className="h-11 rounded-xl border border-separator bg-background px-3 text-sm shadow-none"
+        maxLength={maxLength}
+        placeholder={placeholder}
       />
-      {error && <span className="mt-1 block text-xs text-danger">{error}</span>}
-    </label>
+      {description && !error && (
+        <Description className="mt-1.5 text-xs text-muted">
+          {description}
+        </Description>
+      )}
+      <FieldError className="mt-1.5 block text-xs text-danger">
+        {error}
+      </FieldError>
+    </TextField>
   );
 }
 
