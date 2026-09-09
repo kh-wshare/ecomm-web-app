@@ -3,8 +3,6 @@
 import {
   Avatar,
   Button,
-  Dropdown,
-  Label,
   Modal,
 } from "@heroui/react";
 import { useState } from "react";
@@ -52,13 +50,13 @@ export function StorefrontCustomerAuth({ slug }: { slug: string }) {
     },
   });
 
-  const logout = useMutation({
-    mutationFn: logoutCustomerSession,
+  // const logout = useMutation({
+  //   mutationFn: logoutCustomerSession,
 
-    onSuccess: () => {
-      queryClient.setQueryData(customerSessionQueryKey, null);
-    },
-  });
+  //   onSuccess: () => {
+  //     queryClient.setQueryData(customerSessionQueryKey, null);
+  //   },
+  // });
 
   const startSocialLogin = async (provider: SocialProvider) => {
     setProviderError(null);
@@ -104,60 +102,6 @@ export function StorefrontCustomerAuth({ slug }: { slug: string }) {
           </Avatar.Fallback>
         </Avatar>
       </Link>
-      // <Dropdown>
-      //   <Dropdown.Trigger>
-      //     <Avatar size="lg">
-      //       <Avatar.Image
-      //         alt="Blue"
-      //         src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/blue.jpg"
-      //       />
-
-      //       <Avatar.Fallback>
-      //         {initials}
-      //       </Avatar.Fallback>
-      //     </Avatar>
-      //   </Dropdown.Trigger>
-
-      //   <Dropdown.Popover>
-      //     <Dropdown.Menu
-      //       aria-label="Customer profile"
-      //       onAction={(key) => {
-      //         if (key === "logout") {
-      //           logout.mutate();
-      //         }
-      //       }}
-      //     >
-      //       <Dropdown.Item
-      //         id="profile"
-      //         textValue={customer.user.fullName}
-      //         isDisabled
-      //       >
-      //         <Label>
-      //           <span className="block font-semibold">
-      //             {customer.user.fullName}
-      //           </span>
-
-      //           {customer.user.email && (
-      //             <span className="block text-xs text-muted">
-      //               {customer.user.email}
-      //             </span>
-      //           )}
-      //         </Label>
-      //       </Dropdown.Item>
-
-      //       <Dropdown.Item
-      //         id="logout"
-      //         textValue="Sign out"
-      //         variant="danger"
-      //         isDisabled={logout.isPending}
-      //       >
-      //         <Label>
-      //           {logout.isPending ? "Signing out..." : "Sign out"}
-      //         </Label>
-      //       </Dropdown.Item>
-      //     </Dropdown.Menu>
-      //   </Dropdown.Popover>
-      // </Dropdown>
     );
   }
 
@@ -174,16 +118,6 @@ export function StorefrontCustomerAuth({ slug }: { slug: string }) {
           <Icon icon="solar:user-broken" className="size-6 transition-transform duration-200 group-hover:scale-110" />
         </Avatar.Fallback>
       </Avatar>
-      {/* <Button
-        size="sm"
-        variant="secondary"
-        onPress={() => {
-          setProviderError(null);
-          setIsLoginOpen(true);
-        }}
-      >
-        
-      </Button> */}
 
       <Modal
         isOpen={isLoginOpen}

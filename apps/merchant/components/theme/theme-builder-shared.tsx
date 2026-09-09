@@ -74,25 +74,6 @@ export function SectionEditor({
           onChange({ ...config, hero: { ...config.hero, imageUrl } })
         }
       />
-      <label className="block text-xs font-medium">
-        Product grid columns
-        <Input
-          className="mt-1 w-full"
-          max={6}
-          min={1}
-          type="range"
-          value={config.layout.productGridColumns}
-          onChange={(event) =>
-            onChange({
-              ...config,
-              layout: {
-                ...config.layout,
-                productGridColumns: Number(event.target.value),
-              },
-            })
-          }
-        />
-      </label>
     </div>
   );
 }

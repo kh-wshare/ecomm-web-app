@@ -15,7 +15,7 @@ export function StorefrontProductDetail({
   const config = normalizeThemeConfig(storefront.theme.config);
 
   return (
-      <main className="mx-auto max-w-7xl px-5 py-6 sm:px-8 sm:py-10">
+      <main className="mx-auto max-w-2xl px-5 py-6 sm:px-8 sm:py-10">
         <Link
           className="inline-flex text-sm font-semibold"
           href={`/${storefront.merchant.slug}`}
@@ -23,7 +23,7 @@ export function StorefrontProductDetail({
         >
           ← Back to {storefront.merchant.name}
         </Link>
-        <div className="mt-6 grid gap-8 md:grid-cols-[minmax(0,1.05fr)_minmax(300px,0.95fr)] md:gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:gap-12">
+        <div className="mt-6 grid gap-8">
           <ProductGallery
             config={config}
             media={product.media}

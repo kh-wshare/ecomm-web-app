@@ -59,10 +59,9 @@ export function StorefrontShell({
   };
 
   return (
-    <div className="min-h-dvh pb-16 md:pb-0" style={style}>
+    <div className="min-h-dvh pb-16" style={style}>
       {/* Header — main storefront nav, or the profile item variant on /profile/* sub-pages */}
       <ProfileItemHeaderTitle
-        cartModal={cartModal}
         config={config}
         isGlobal={!isProfileItemRoute}
         merchant={merchant}
@@ -72,8 +71,8 @@ export function StorefrontShell({
 
       <CartModal config={config} merchant={merchant} state={cartModal} />
 
-      {/* Mobile Bottom Bar — cart summary + navigation, unified in one card */}
-      <nav className="fixed inset-x-0 bottom-0 z-40 md:hidden">
+      {/* Bottom Bar — cart summary + navigation, unified in one card at every width */}
+      <nav className="fixed inset-x-0 bottom-0 z-40">
         <div className="storefront-bottom-bar mx-auto max-w-md px-4 pb-[calc(env(safe-area-inset-bottom)+0.75rem)]">
           <div
             className="overflow-hidden rounded-[1.75rem] shadow-[0_-8px_30px_-4px_rgba(0,0,0,0.12)] backdrop-blur-xl"

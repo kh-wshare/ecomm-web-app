@@ -79,7 +79,7 @@ function Hero({
   merchantName: string;
 }) {
   return (
-    <section className="mx-auto max-w-7xl px-5 py-4 sm:px-8 sm:py-12">
+    <section className="mx-auto max-w-2xl px-5 py-4 sm:px-8 sm:py-12">
       <div
         className="relative isolate flex min-h-[220px] items-end overflow-hidden px-5 py-6 sm:min-h-[520px] sm:px-12 sm:py-14"
         style={{
@@ -133,7 +133,7 @@ function ProductGrid({
 }) {
   return (
     <section className={spacingClass(config.layout.spacing)} id="products">
-      <div className="mx-auto max-w-7xl px-5 sm:px-8">
+      <div className="mx-auto max-w-2xl px-5 sm:px-8">
         <div className="mb-7 flex items-end justify-between gap-4">
           <div>
             <p
@@ -155,10 +155,9 @@ function ProductGrid({
             {products.length} product{products.length === 1 ? "" : "s"}
           </p>
         </div>
+        {/* Desktop follows mobile: two products per row at every width. */}
         {products.length ? (
-          <div
-            className={`grid gap-3 sm:gap-5 ${columnClass(config.layout.productGridColumns)}`}
-          >
+          <div className="grid grid-cols-2 gap-3 sm:gap-5">
             {products.map((product) => (
               <ProductCard
                 config={config}
@@ -187,68 +186,6 @@ function ProductGrid({
   );
 }
 
-function SocialFeed({
-  articles,
-  config,
-  merchantSlug,
-}: {
-  articles: PublicArticle[];
-  config: ReturnType<typeof normalizeThemeConfig>;
-  merchantSlug: string;
-}) {
-  if (!articles.length) return null;
-
-  return (
-    <section className={spacingClass(config.layout.spacing)}>
-      <div className="mx-auto max-w-7xl px-5 sm:px-8">
-        <h2
-          className="text-3xl font-semibold tracking-tight"
-          style={{
-            fontFamily: `${config.typography.headingFont}, ui-sans-serif, system-ui, sans-serif`,
-          }}
-        >
-          {config.socialFeed.title}
-        </h2>
-        <div className="mt-7 grid gap-5 md:grid-cols-3">
-          {articles.slice(0, 3).map((article) => (
-            <article
-              className="overflow-hidden border"
-              key={article.id}
-              style={{
-                borderColor: `color-mix(in srgb, ${config.colors.text} 13%, transparent)`,
-                borderRadius: radiusValue(config.layout.borderRadius),
-              }}
-            >
-              <div
-                className="aspect-[16/10] bg-black/5 bg-cover bg-center"
-                style={
-                  article.mediaUrls[0]
-                    ? {
-                        backgroundImage: `url("${article.mediaUrls[0]}")`,
-                      }
-                    : undefined
-                }
-              />
-              <div className="p-5">
-                <h3 className="font-semibold">{article.title}</h3>
-                <p className="mt-2 line-clamp-3 text-sm leading-6 opacity-65">
-                  {article.content}
-                </p>
-                <p
-                  className="mt-4 text-xs font-bold uppercase tracking-wide"
-                  style={{ color: config.colors.accent }}
-                >
-                  {merchantSlug} · Store story
-                </p>
-              </div>
-            </article>
-          ))}
-        </div>
-      </div>
-    </section>
-  );
-}
-
 function ContactSection({
   config,
   email,
@@ -258,7 +195,7 @@ function ContactSection({
 }) {
   return (
     <section className={spacingClass(config.layout.spacing)}>
-      <div className="mx-auto max-w-4xl px-5 text-center sm:px-8">
+      <div className="mx-auto max-w-2xl px-5 text-center sm:px-8">
         <h2
           className="text-3xl font-semibold"
           style={{
@@ -314,22 +251,3 @@ function spacingClass(
   }[spacing];
 }
 
-function columnClass(columns: number) {
-  if (columns <= 2) {
-    return "grid-cols-2";
-  }
-
-  if (columns === 3) {
-    return "grid-cols-2 lg:grid-cols-3";
-  }
-
-  if (columns === 4) {
-    return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4";
-  }
-
-  if (columns === 5) {
-    return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5";
-  }
-
-  return "grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6";
-}

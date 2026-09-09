@@ -32,7 +32,7 @@ export function SearchContent({
   }, [products, query]);
 
   return (
-    <main className="mx-auto w-full max-w-7xl px-5 pb-24 pt-6 sm:px-8 sm:pt-8 md:pb-16">
+    <main className="mx-auto w-full max-w-2xl px-5 pb-24 pt-6 sm:px-8 sm:pt-8">
       <h1
         className="text-2xl font-semibold tracking-tight sm:text-3xl"
         style={{
@@ -74,7 +74,7 @@ export function SearchContent({
       </p>
 
       {results.length ? (
-        <div className="mt-6 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="mt-6 grid grid-cols-2 gap-4">
           {results.map((product) => (
             <ProductCard
               config={config}

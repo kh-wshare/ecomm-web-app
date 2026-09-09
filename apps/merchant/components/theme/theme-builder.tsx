@@ -19,7 +19,6 @@ import {
   PublishThemeButton,
 } from './theme-builder-shared';
 import { ThemeColorPicker } from './theme-color-picker';
-import { ThemeGridColumns } from './theme-grid-columns';
 
 import type { CurrentTheme, ThemeConfig, ThemeSection } from '@/types/theme';
 import { ConfirmDialog } from '@repo/ui';
@@ -480,17 +479,6 @@ function SectionContent({
         value={config.hero.imageUrl}
         onChange={(imageUrl) => patch({ hero: { ...config.hero, imageUrl } })}
       />
-      <ThemeGridColumns
-        value={config.layout.productGridColumns}
-        onChange={(productGridColumns) =>
-          patch({
-            layout: {
-              ...config.layout,
-              productGridColumns,
-            },
-          })
-        }
-      />
       {fields.map(({ key, label }) => (
         <ThemeTextField
           key={key}
@@ -603,10 +591,7 @@ function PreviewSection({
           className="grid"
           style={{
             gap,
-            gridTemplateColumns: `repeat(${Math.min(
-              config.layout.productGridColumns,
-              4,
-            )}, minmax(0, 1fr))`,
+            gridTemplateColumns: 'repeat(2, minmax(0, 1fr))',
           }}
         >
           {Array.from({ length: 4 }, (_, index) => (

@@ -80,7 +80,7 @@ function SocialFeed({
 
     return (
         <section className={spacingClass(config.layout.spacing)}>
-            <div className="mx-auto max-w-7xl px-5 mt-4 sm:px-8">
+            <div className="mx-auto max-w-2xl px-5 mt-4 sm:px-8">
                 <h2
                     className="text-3xl font-semibold tracking-tight"
                     style={{
@@ -89,7 +89,7 @@ function SocialFeed({
                 >
                     {config.socialFeed.title}
                 </h2>
-                <div className="mt-7 grid gap-5 md:grid-cols-3">
+                <div className="mt-7 grid gap-5">
                     {articles.slice(0, 3).map((article) => (
                         <article
                             className="overflow-hidden border"

@@ -29,7 +29,7 @@ export function CartContent({
 
   if (cart.items.length === 0) {
     return (
-      <main className="mx-auto flex w-full max-w-2xl flex-col items-center gap-3 px-5 pb-24 pt-16 text-center sm:px-8 md:pb-16">
+      <main className="mx-auto flex w-full max-w-2xl flex-col items-center gap-3 px-5 pb-24 pt-16 text-center sm:px-8">
         <div className="flex size-14 items-center justify-center rounded-full bg-accent/10 text-accent">
           <Icon icon="solar:cart-large-2-linear" className="text-2xl" />
         </div>
@@ -47,7 +47,7 @@ export function CartContent({
   }
 
   return (
-    <main className="mx-auto w-full max-w-2xl px-5 pb-24 pt-6 sm:px-8 sm:pt-8 md:pb-16">
+    <main className="mx-auto w-full max-w-2xl px-5 pb-24 pt-6 sm:px-8 sm:pt-8">
       <h1
         className="text-2xl font-semibold tracking-tight sm:text-3xl"
         style={{
