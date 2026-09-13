@@ -1,6 +1,4 @@
 import Link from "next/link";
-import NextImage from "next/image";
-import { Image } from "@heroui/image";
 import type { PublicMerchant, PublicProduct } from "@/types/storefront";
 import type { ThemeConfig } from "@/types/theme";
 import { formatCurrency } from "@/lib/formatters/currency";
@@ -44,16 +42,11 @@ export function ProductCard({
       {/* Product media wrapper */}
       <div className="relative aspect-[6/5] w-full overflow-hidden bg-black/[0.03]">
         {media?.type === "IMAGE" && (
-          <Image
+          <img
             src={media.url}
-            as={NextImage}
             alt={product.name}
-            fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 33vw"
-            classNames={{
-              wrapper: "size-full max-w-none!",
-              img: "size-full object-cover transition-transform duration-500 ease-out group-hover:scale-105",
-            }}
+            className="size-full object-cover transition-transform duration-500 ease-out group-hover:scale-105"
           />
         )}
 

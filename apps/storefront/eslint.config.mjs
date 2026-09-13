@@ -1,3 +1,6 @@
 import config from "@repo/eslint-config/next";
+import { appBoundaries } from "@repo/eslint-config/app-boundaries";
 
-export default config;
+const storefrontConfig = [...config, appBoundaries("storefront")];
+
+export default storefrontConfig;

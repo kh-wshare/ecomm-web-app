@@ -1,10 +1,11 @@
 "use client";
 
 import { Icon } from "@iconify/react";
-import { Chip } from "@heroui/react";
+import { Button, Chip } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 
 import { ORDER_STATUS_CONFIG } from "@/components/storefront/orders-panel";
+import { useCustomerAuthModal } from "@/components/storefront/customer-auth-modal";
 import { formatCurrency } from "@/lib/formatters/currency";
 import { getErrorMessage } from "@/lib/errors/api-error";
 import { useHasMounted } from "@/hooks/use-has-mounted";
@@ -32,6 +33,7 @@ export function OrderDetailContent({
     orderNumber: string;
 }) {
     const hasMounted = useHasMounted();
+    const { openLogin } = useCustomerAuthModal();
 
     const customerQuery = useQuery({
         queryKey: customerSessionQueryKey,
@@ -63,6 +65,9 @@ export function OrderDetailContent({
                     <Icon icon="solar:user-circle-outline" className="text-2xl" />
                 </div>
                 <p className="text-sm font-medium text-foreground">Sign in to view this order</p>
+                <Button className="mt-1" onPress={openLogin} size="sm">
+                    Sign in
+                </Button>
             </div>
         );
     }

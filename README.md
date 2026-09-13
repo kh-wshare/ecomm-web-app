@@ -18,8 +18,7 @@ pnpm install
 | App | Package | Local URL | Purpose |
 | --- | --- | --- | --- |
 | Marketing | `@repo/marketing` | `http://localhost:3003` | Public landing page for the platform |
-| Merchant | `@repo/merchant` | `http://localhost:3000/merchant` | Merchant admin workspace |
-| POS | `@repo/pos` | `http://localhost:3001/pos` | Staff point-of-sale workspace |
+| Merchant | `@repo/merchant` | `http://localhost:3008/merchant` | Merchant admin workspace |
 | Storefront | `@repo/storefront` | `http://localhost:3002` | Public shopping storefront |
 
 ## Scripts
@@ -27,7 +26,6 @@ pnpm install
 ```bash
 pnpm marketing:dev
 pnpm merchant:dev
-pnpm pos:dev
 pnpm storefront:dev
 pnpm type-check
 pnpm lint
@@ -43,22 +41,20 @@ Start the apps in separate terminals:
 ```bash
 pnpm marketing:dev
 pnpm merchant:dev
-pnpm pos:dev
 pnpm storefront:dev
 ```
 
 Then start the gateway if you want the routed URLs:
 
 ```bash
-docker compose -f docker-compose.prod.yml up nginx
+docker compose -f docker-compose.dev.yml up
 ```
 
 Open:
 
 ```txt
 http://localhost:3003
-http://localhost:3000/merchant
-http://localhost:3001/pos
+http://localhost:3008/merchant
 http://localhost:3002
 ```
 
@@ -66,7 +62,6 @@ When using the gateway, the route mapping is typically:
 
 ```txt
 /merchant -> merchant app
-/pos      -> POS app
 /         -> storefront app
 ```
 

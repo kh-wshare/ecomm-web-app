@@ -42,6 +42,7 @@ export function PurchasePanel({
   );
 
   const hasVariants = product.variants.length > 0;
+  const shouldScrollVariants = product.variants.length > 2;
 
   const selectedTargetAvailable = selectedVariant
     ? selectedVariant.isAvailable
@@ -223,60 +224,58 @@ export function PurchasePanel({
                 Choose an option
               </legend>
 
-              <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
-                <Button
-                  aria-label="Previous product option"
-                  isIconOnly
-                  size="sm"
-                  type="button"
-                  variant="secondary"
-                  onPress={() => scrollOptions("previous")}
-                >
-                  <Icon
-                    className="size-4"
-                    icon="gravity-ui:chevron-left"
-                  />
-                </Button>
+              {shouldScrollVariants && (
+                <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
+                  <Button
+                    aria-label="Previous product option"
+                    isIconOnly
+                    size="sm"
+                    type="button"
+                    variant="secondary"
+                    onPress={() => scrollOptions("previous")}
+                  >
+                    <Icon
+                      className="size-4"
+                      icon="gravity-ui:chevron-left"
+                    />
+                  </Button>
 
-                <Button
-                  aria-label="Next product option"
-                  isIconOnly
-                  size="sm"
-                  type="button"
-                  variant="secondary"
-                  onPress={() => scrollOptions("next")}
-                >
-                  <Icon
-                    className="size-4"
-                    icon="gravity-ui:chevron-right"
-                  />
-                </Button>
-              </div>
+                  <Button
+                    aria-label="Next product option"
+                    isIconOnly
+                    size="sm"
+                    type="button"
+                    variant="secondary"
+                    onPress={() => scrollOptions("next")}
+                  >
+                    <Icon
+                      className="size-4"
+                      icon="gravity-ui:chevron-right"
+                    />
+                  </Button>
+                </div>
+              )}
             </div>
 
             <div
               ref={optionCarouselRef}
-              className="
-                -mx-4
-                mt-3
-                overflow-x-auto
-                px-4
-                pb-2
-                sm:-mx-6
-                sm:px-6
-              "
-              style={{
-                scrollbarWidth: "none",
-              }}
+              className={
+                shouldScrollVariants
+                  ? "-mx-4 mt-3 overflow-x-auto px-4 pb-2 sm:-mx-6 sm:px-6"
+                  : "mt-3"
+              }
+              style={
+                shouldScrollVariants
+                  ? { scrollbarWidth: "none" }
+                  : undefined
+              }
             >
               <div
-                className="
-                  grid
-                  auto-cols-[minmax(145px,75vw)]
-                  grid-flow-col
-                  gap-3
-                  sm:auto-cols-[minmax(160px,1fr)]
-                "
+                className={
+                  shouldScrollVariants
+                    ? "grid auto-cols-[minmax(145px,75vw)] grid-flow-col gap-3 sm:auto-cols-[minmax(160px,1fr)]"
+                    : "grid grid-cols-2 gap-3"
+                }
               >
                 {product.variants.map((variant) => (
                   <ProductOptionCard

@@ -8,6 +8,7 @@ import { useOverlayState } from "@heroui/react";
 
 import type { PublicMerchant } from "@/types/storefront";
 import type { ThemeConfig } from "@/types/theme";
+import { CustomerAuthModalProvider } from "@/components/storefront/customer-auth-modal";
 import { StorefrontCustomerAuth } from "@/components/storefront/storefront-customer-auth";
 import { CartModal } from "@/components/storefront/cart-modal";
 import { ProfileItemHeaderTitle } from "@/components/storefront/profile-item-header-title";
@@ -59,6 +60,7 @@ export function StorefrontShell({
   };
 
   return (
+    <CustomerAuthModalProvider>
     <div className="min-h-dvh pb-16" style={style}>
       {/* Header — main storefront nav, or the profile item variant on /profile/* sub-pages */}
       <ProfileItemHeaderTitle
@@ -113,7 +115,7 @@ export function StorefrontShell({
               </button>
             )}
 
-            <div className="flex h-16 items-center">
+            <div className="flex h-16 items-center px-2">
               {/* Main Navigation */}
               <div className="relative flex flex-1 items-center h-full">
                 {/* Liquid glass indicator — slides beneath the active tab */}
@@ -189,6 +191,7 @@ export function StorefrontShell({
         </div>
       </nav>
     </div>
+    </CustomerAuthModalProvider>
   );
 }
 

@@ -38,6 +38,7 @@ import { notify } from '@/lib/toast/notify';
 import { validateForm } from '@/lib/validation/form';
 import { productFormSchema } from '@/lib/validation/product';
 import type {
+  InventoryType,
   Product,
   ProductFormValues,
   ProductInventoryDetail,
@@ -115,6 +116,24 @@ const CHANNEL_MODES: {
     value: 'selling',
     label: 'Selling',
     description: 'Customers can buy it',
+  },
+];
+
+const INVENTORY_TYPE_OPTIONS: {
+  value: InventoryType;
+  label: string;
+  description: string;
+}[] = [
+  {
+    value: 'STOCKED',
+    label: 'Track stock',
+    description: 'Set quantities, safety buffers, and low-stock alerts.',
+  },
+  {
+    value: 'NON_STOCKED',
+    label: 'No stock tracking',
+    description:
+      'Always available to sell, e.g. services or made-to-order items.',
   },
 ];
 
@@ -300,6 +319,7 @@ function ProductFormFields({
     });
   }
 
+  const canTrackStock = canAdjustStock && values.inventoryType === 'STOCKED';
   const isDirty = JSON.stringify(values) !== JSON.stringify(initialValues);
   const visibleChannelCount = values.channels.filter(
     (item) => item.isVisible,
@@ -386,7 +406,10 @@ function ProductFormFields({
         queryClient.invalidateQueries({ queryKey: queryKeys.inventory.all }),
       ]);
 
-      router.push(`/products/${savedProduct.id}`);
+      // Defer past the toast's own view transition so it doesn't collide
+      // with the one the router navigation starts (causes an uncaught
+      // "Transition was aborted" DOMException).
+      requestAnimationFrame(() => router.push(`/products/${savedProduct.id}`));
     },
     onError: (error) => notify.error(error, 'Unable to save product'),
   });
@@ -640,6 +663,7 @@ function ProductFormFields({
                 {mode === 'create' ? 'Create product' : `Edit ${product?.name}`}
               </h2>
               <StatusBadge status={values.status} />
+              <InventoryTypeBadge inventoryType={values.inventoryType} />
             </div>
 
             <p className="mt-2 max-w-2xl text-sm text-muted">
@@ -806,7 +830,7 @@ function ProductFormFields({
             title="Variants"
           >
             <VariantTable
-              canAdjustStock={canAdjustStock}
+              canAdjustStock={canTrackStock}
               errors={errors}
               mode={mode}
               variants={values.variants}
@@ -940,66 +964,104 @@ function ProductFormFields({
           {canAdjustStock && (
             <FormSection
               compact
-              description={
-                mode === 'create'
-                  ? "Create the product's base stock. Variant stock can be set inside each variant."
-                  : 'Apply a signed adjustment to base stock. Variant stock can be adjusted inside each variant.'
-              }
+              description="Choose whether this product tracks stock, then set its quantity."
               title="Inventory"
             >
-              {mode === 'edit' && baseStock && (
-                <div className="mb-4 grid grid-cols-2 gap-3">
-                  <MiniMetricCard
-                    label="Base stock"
-                    value={baseStock.totalStock}
-                  />
-                  <MiniMetricCard
-                    label="Sellable"
-                    value={baseStock.onlineSellableStock}
-                  />
-                </div>
-              )}
+              <div className="mb-4 grid gap-2 sm:grid-cols-2">
+                {INVENTORY_TYPE_OPTIONS.map((option) => {
+                  const isSelected = values.inventoryType === option.value;
 
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
-                {mode === 'create' ? (
-                  <HeroTextInput
-                    error={firstError(errors, 'initialStock')}
-                    inputMode="numeric"
-                    label="Initial stock"
-                    name="initialStock"
-                    placeholder="0"
-                    value={values.initialStock}
-                    onChange={(value) => setField('initialStock', value)}
-                  />
-                ) : (
-                  <HeroTextInput
-                    description="Use positive or negative value."
-                    error={firstError(errors, 'stockAdjustment')}
-                    inputMode="numeric"
-                    label="Stock adjustment"
-                    name="stockAdjustment"
-                    placeholder="e.g. 10 or -2"
-                    value={values.stockAdjustment}
-                    onChange={(value) => setField('stockAdjustment', value)}
-                  />
-                )}
-
-                <HeroTextInput
-                  description="Reserve stock not available for online sale."
-                  error={firstError(errors, 'safetyBuffer')}
-                  inputMode="numeric"
-                  label="Safety buffer"
-                  name="safetyBuffer"
-                  placeholder="0"
-                  value={values.safetyBuffer}
-                  onChange={(value) => setField('safetyBuffer', value)}
-                />
+                  return (
+                    <button
+                      className={`rounded-xl border px-3 py-3 text-left transition ${
+                        isSelected
+                          ? 'border-accent bg-accent/10'
+                          : 'border-separator bg-surface hover:bg-surface-secondary'
+                      }`}
+                      key={option.value}
+                      type="button"
+                      onClick={() => setField('inventoryType', option.value)}
+                    >
+                      <span
+                        className={`block text-sm font-semibold ${
+                          isSelected ? 'text-accent' : 'text-foreground'
+                        }`}
+                      >
+                        {option.label}
+                      </span>
+                      <span className="mt-1 block text-xs text-muted">
+                        {option.description}
+                      </span>
+                    </button>
+                  );
+                })}
               </div>
 
-              <p className="mt-4 rounded-xl border border-warning/20 bg-warning/5 px-3 py-2 text-xs text-muted">
-                The inventory API requires a non-zero stock adjustment when
-                applying a safety buffer.
-              </p>
+              {values.inventoryType === 'STOCKED' ? (
+                <>
+                  {mode === 'edit' && baseStock && (
+                    <div className="mb-4 grid grid-cols-2 gap-3">
+                      <MiniMetricCard
+                        label="Base stock"
+                        value={baseStock.totalStock}
+                      />
+                      <MiniMetricCard
+                        label="Sellable"
+                        value={baseStock.onlineSellableStock}
+                      />
+                    </div>
+                  )}
+
+                  <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+                    {mode === 'create' ? (
+                      <HeroTextInput
+                        error={firstError(errors, 'initialStock')}
+                        inputMode="numeric"
+                        label="Initial stock"
+                        name="initialStock"
+                        placeholder="0"
+                        value={values.initialStock}
+                        onChange={(value) => setField('initialStock', value)}
+                      />
+                    ) : (
+                      <HeroTextInput
+                        description="Use positive or negative value."
+                        error={firstError(errors, 'stockAdjustment')}
+                        inputMode="numeric"
+                        label="Stock adjustment"
+                        name="stockAdjustment"
+                        placeholder="e.g. 10 or -2"
+                        value={values.stockAdjustment}
+                        onChange={(value) =>
+                          setField('stockAdjustment', value)
+                        }
+                      />
+                    )}
+
+                    <HeroTextInput
+                      description="Reserve stock not available for online sale."
+                      error={firstError(errors, 'safetyBuffer')}
+                      inputMode="numeric"
+                      label="Safety buffer"
+                      name="safetyBuffer"
+                      placeholder="0"
+                      value={values.safetyBuffer}
+                      onChange={(value) => setField('safetyBuffer', value)}
+                    />
+                  </div>
+
+                  <p className="mt-4 rounded-xl border border-warning/20 bg-warning/5 px-3 py-2 text-xs text-muted">
+                    The inventory API requires a non-zero stock adjustment
+                    when applying a safety buffer.
+                  </p>
+                </>
+              ) : (
+                <p className="rounded-xl border border-separator bg-background px-3 py-3 text-xs text-muted">
+                  This product won&apos;t track stock levels or show
+                  quantities. It stays available for sale until you switch
+                  back to tracked stock.
+                </p>
+              )}
             </FormSection>
           )}
         </aside>
@@ -1007,7 +1069,7 @@ function ProductFormFields({
 
       {variantModal && (
         <VariantEditorModal
-          canAdjustStock={canAdjustStock}
+          canAdjustStock={canTrackStock}
           errors={
             variantModal.index === null
               ? {}
@@ -2010,6 +2072,26 @@ function StatusBadge({ status }: { status: ProductStatus }) {
   );
 }
 
+function InventoryTypeBadge({
+  inventoryType,
+}: {
+  inventoryType: InventoryType;
+}) {
+  const isStocked = inventoryType === 'STOCKED';
+
+  return (
+    <span
+      className={`rounded-full px-2.5 py-1 text-xs font-semibold ${
+        isStocked
+          ? 'bg-accent/10 text-accent'
+          : 'bg-surface-secondary text-muted'
+      }`}
+    >
+      {isStocked ? 'Tracks stock' : 'No stock tracking'}
+    </span>
+  );
+}
+
 function VariantStatusBadge({ status }: { status: VariantStatus }) {
   const className =
     status === 'ACTIVE'
@@ -2132,6 +2214,7 @@ function toInitialValues(
     price: product?.price ?? '',
     currency: product?.currency ?? 'USD',
     status: product?.status ?? 'DRAFT',
+    inventoryType: product?.inventoryType ?? 'STOCKED',
     categoryId: product?.categoryId ?? product?.category?.id ?? '',
     variants:
       product?.variants?.map((variant) => {
@@ -2180,8 +2263,9 @@ async function toPayload(
   canAdjustStock: boolean,
 ): Promise<ProductPayload> {
   const media = await normalizeMediaBeforeSubmit(values.media);
+  const tracksStock = values.inventoryType === 'STOCKED';
   const inventory =
-    mode === 'create' && canAdjustStock
+    mode === 'create' && canAdjustStock && tracksStock
       ? buildInitialInventory(values)
       : undefined;
 
@@ -2193,6 +2277,7 @@ async function toPayload(
     price: values.price.trim(),
     currency: values.currency.trim().toUpperCase(),
     status: values.status,
+    inventoryType: values.inventoryType,
     categoryId: values.categoryId.trim() || null,
     variants: values.variants.map((variant) => ({
       sku: variant.sku.trim(),
@@ -2265,6 +2350,9 @@ function validateStockChanges({
   mode: 'create' | 'edit';
 }) {
   const errors: FormErrors = {};
+
+  if (formValues.inventoryType !== 'STOCKED') return errors;
+
   const baseQuantityDelta =
     mode === 'create'
       ? Number(formValues.initialStock || 0)
@@ -2317,6 +2405,9 @@ function buildStockAdjustments({
   savedProduct: Product;
 }) {
   const adjustments: StockAdjustmentDraft[] = [];
+
+  if (formValues.inventoryType !== 'STOCKED') return adjustments;
+
   const baseQuantityDelta =
     mode === 'create'
       ? Number(formValues.initialStock || 0)

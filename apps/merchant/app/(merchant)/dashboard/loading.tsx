@@ -1,7 +1,5 @@
-"use client";
-
-import { DashboardLoading } from "@/components/dashboard/dashboard-loading";
+import { DashboardHomeLoading } from "@/components/dashboard/home/dashboard-home-loading";
 
 export default function Loading() {
-  return <DashboardLoading />;
+  return <DashboardHomeLoading />;
 }

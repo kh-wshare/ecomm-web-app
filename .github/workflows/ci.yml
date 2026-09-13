@@ -1,0 +1,126 @@
+name: CI
+
+on:
+  pull_request:
+  workflow_call:
+    inputs:
+      force_all:
+        description: Treat every app as changed regardless of the diff (used for manual redeploys).
+        type: boolean
+        default: false
+    outputs:
+      apps_json:
+        description: JSON array of apps affected by this change, e.g. ["merchant"].
+        value: ${{ jobs.changes.outputs.apps_json }}
+      apps_list:
+        description: Space-separated list of apps affected by this change.
+        value: ${{ jobs.changes.outputs.apps_list }}
+      gateway_changed:
+        description: "true if the nginx gateway config or compose file changed."
+        value: ${{ jobs.changes.outputs.gateway_changed }}
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  changes:
+    name: Detect affected apps
+    runs-on: ubuntu-latest
+    outputs:
+      apps_json: ${{ steps.apps.outputs.apps_json }}
+      apps_list: ${{ steps.apps.outputs.apps_list }}
+      gateway_changed: ${{ steps.filter.outputs.gateway }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - id: filter
+        uses: dorny/paths-filter@v3
+        with:
+          filters: |
+            shared:
+              - 'packages/**'
+              - 'package.json'
+              - 'pnpm-lock.yaml'
+              - 'pnpm-workspace.yaml'
+              - 'turbo.json'
+            marketing:
+              - 'apps/marketing/**'
+            merchant:
+              - 'apps/merchant/**'
+            storefront:
+              - 'apps/storefront/**'
+            gateway:
+              - 'deploy/nginx/**'
+              - 'docker-compose.prod.yml'
+
+      # A change under packages/* (or root config) can affect any app that
+      # transpiles it, so treat it as "all apps changed" rather than trying
+      # to model the package -> app dependency graph here.
+      - id: apps
+        name: Build affected-apps list
+        run: |
+          apps=()
+          if [ "${{ inputs.force_all }}" = "true" ] || [ "${{ steps.filter.outputs.shared }}" = "true" ]; then
+            apps=(marketing merchant storefront)
+          else
+            [ "${{ steps.filter.outputs.marketing }}" = "true" ] && apps+=(marketing)
+            [ "${{ steps.filter.outputs.merchant }}" = "true" ] && apps+=(merchant)
+            [ "${{ steps.filter.outputs.storefront }}" = "true" ] && apps+=(storefront)
+          fi
+
+          if [ ${#apps[@]} -eq 0 ]; then
+            json="[]"
+          else
+            json=$(printf '"%s",' "${apps[@]}")
+            json="[${json%,}]"
+          fi
+
+          echo "apps_json=$json" >> "$GITHUB_OUTPUT"
+          echo "apps_list=${apps[*]}" >> "$GITHUB_OUTPUT"
+          echo "Affected apps: ${apps[*]:-none}"
+
+  verify:
+    name: Lint, type-check, build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 10.30.1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - run: pnpm lint
+
+      - run: pnpm type-check
+
+      - run: pnpm build
+
+  docker-build:
+    name: Docker build (${{ matrix.app }})
+    needs: changes
+    if: needs.changes.outputs.apps_list != ''
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        app: ${{ fromJson(needs.changes.outputs.apps_json) }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: docker/setup-buildx-action@v3
+
+      - name: Build image (not pushed)
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: apps/${{ matrix.app }}/Dockerfile
+          push: false
+          cache-from: type=gha,scope=${{ matrix.app }}
+          cache-to: type=gha,mode=max,scope=${{ matrix.app }}

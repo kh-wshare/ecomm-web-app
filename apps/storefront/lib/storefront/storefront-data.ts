@@ -1,5 +1,6 @@
 import { cache } from "react";
-import { createServerApiClient } from "@repo/api-client";
+import { notFound } from "next/navigation";
+import { ApiError, createServerApiClient } from "@repo/api-client";
 import type {
   ApiResponse,
   PublicArticle,
@@ -12,10 +13,26 @@ import { env } from "@/lib/env";
 
 const apiClient = createServerApiClient({ env });
 
+// A missing merchant/product is an expected, routine outcome (bad slug,
+// unpublished store) — render the not-found UI instead of the error
+// boundary. Any other status still propagates to error.tsx as a real failure.
+async function withNotFound<T>(request: Promise<T>): Promise<T> {
+  try {
+    return await request;
+  } catch (error) {
+    if (error instanceof ApiError && error.statusCode === 404) {
+      notFound();
+    }
+
+    throw error;
+  }
+}
+
 export const getPublicStorefront = cache(async (merchantSlug: string) => {
-  const response = await apiClient.get<ApiResponse<PublicStorefront>>(
-    `/storefront/${merchantSlug}`,
-    { cache: "no-store" },
+  const response = await withNotFound(
+    apiClient.get<ApiResponse<PublicStorefront>>(`/storefront/${merchantSlug}`, {
+      cache: "no-store",
+    }),
   );
 
   return response.data;
@@ -26,9 +43,11 @@ export async function getPublicProducts(
   limit = 6,
   page = 1,
 ): Promise<PublicProductPage> {
-  const response = await apiClient.get<ApiResponse<PublicProduct[]>>(
-    `/storefront/${merchantSlug}/products?page=${page}&limit=${limit}`,
-    { cache: "no-store" },
+  const response = await withNotFound(
+    apiClient.get<ApiResponse<PublicProduct[]>>(
+      `/storefront/${merchantSlug}/products?page=${page}&limit=${limit}`,
+      { cache: "no-store" },
+    ),
   );
 
   return {
@@ -48,18 +67,21 @@ export async function getPublicProduct(
   merchantSlug: string,
   productSlug: string,
 ) {
-  const response = await apiClient.get<ApiResponse<PublicProduct>>(
-    `/storefront/${merchantSlug}/products/${productSlug}`,
-    { cache: "no-store" },
+  const response = await withNotFound(
+    apiClient.get<ApiResponse<PublicProduct>>(
+      `/storefront/${merchantSlug}/products/${productSlug}`,
+      { cache: "no-store" },
+    ),
   );
 
   return response.data;
 }
 
 export async function getPublicArticles(merchantSlug: string) {
-  const response = await apiClient.get<ApiResponse<PublicArticle[]>>(
-    `/storefront/${merchantSlug}/posts`,
-    { cache: "no-store" },
+  const response = await withNotFound(
+    apiClient.get<ApiResponse<PublicArticle[]>>(`/storefront/${merchantSlug}/posts`, {
+      cache: "no-store",
+    }),
   );
 
   return response.data;

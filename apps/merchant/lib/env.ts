@@ -14,7 +14,7 @@ const merchantEnvironmentSchema = z.object({
   NEXT_PUBLIC_DASHBOARD_URL: z
     .string()
     .url()
-    .default("http://localhost:3000/merchant")
+    .default("http://localhost:3008/merchant")
     .transform(stripTrailingSlash),
   NEXT_PUBLIC_WEBSOCKET_URL: z
     .string()

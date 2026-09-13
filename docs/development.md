@@ -14,7 +14,6 @@ The workspace uses Node `26.5.0` from `.nvmrc`.
 ```bash
 pnpm marketing:dev
 pnpm merchant:dev
-pnpm pos:dev
 pnpm storefront:dev
 ```
 
@@ -26,7 +25,7 @@ pnpm --filter @repo/marketing lint
 pnpm --filter @repo/marketing build
 ```
 
-Replace `@repo/marketing` with `@repo/merchant`, `@repo/pos`, or `@repo/storefront`.
+Replace `@repo/marketing` with `@repo/merchant` or `@repo/storefront`.
 
 ## Check Workspace
 

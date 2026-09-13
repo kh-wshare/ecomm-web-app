@@ -5,12 +5,14 @@
   "type": "module",
   "exports": {
     "./base": "./base.mjs",
-    "./next": "./next.mjs"
+    "./next": "./next.mjs",
+    "./app-boundaries": "./app-boundaries.mjs"
   },
   "dependencies": {
     "@eslint/js": "^9.18.0",
     "eslint-config-next": "16.2.0",
     "eslint-config-prettier": "^10.0.1",
+    "eslint-plugin-import": "^2.32.0",
     "globals": "^17.0.0",
     "typescript-eslint": "^8.20.0"
   }

@@ -1,6 +1,7 @@
 import { z } from "zod";
 
 import {
+  INVENTORY_TYPES,
   PRODUCT_STATUSES,
   SALES_CHANNELS,
   VARIANT_STATUSES,
@@ -66,6 +67,7 @@ export const productFormSchema = z
       .trim()
       .regex(/^[A-Za-z]{3}$/, "Enter a three-letter currency code"),
     status: z.enum(PRODUCT_STATUSES),
+    inventoryType: z.enum(INVENTORY_TYPES),
     categoryId: z.string().trim(),
     variants: z.array(variantSchema).max(100),
     media: z.array(mediaSchema).max(50),

@@ -6,7 +6,7 @@ const workspaceRoot = join(appDir, "../..");
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  allowedDevOrigins: ["127.0.0.1", "squishy-platter-pusher.ngrok-free.dev"],
+  allowedDevOrigins: ["127.0.0.1", "localhost"],
   basePath: "/merchant",
   output: "standalone",
   outputFileTracingRoot: workspaceRoot,

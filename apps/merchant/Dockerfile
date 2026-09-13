@@ -25,7 +25,7 @@ FROM node:${NODE_VERSION}-alpine AS runner
 ENV HOSTNAME=0.0.0.0
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
-ENV PORT=3000
+ENV PORT=3008
 WORKDIR /app
 
 RUN addgroup -S nextjs && adduser -S nextjs -G nextjs
@@ -34,5 +34,5 @@ COPY --from=builder --chown=nextjs:nextjs /app/apps/merchant/.next/standalone ./
 COPY --from=builder --chown=nextjs:nextjs /app/apps/merchant/.next/static ./apps/merchant/.next/static
 
 USER nextjs
-EXPOSE 3000
+EXPOSE 3008
 CMD ["node", "apps/merchant/server.js"]

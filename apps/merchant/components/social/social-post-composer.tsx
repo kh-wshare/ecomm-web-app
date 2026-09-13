@@ -85,7 +85,10 @@ export function SocialPostComposer() {
           ? "Review the per-platform results on the post detail page."
           : "Your social post is ready for more work.",
       );
-      router.push(`/social-posts/${post.id}`);
+      // Defer past the toast's own view transition so it doesn't collide
+      // with the one the router navigation starts (causes an uncaught
+      // "Transition was aborted" DOMException).
+      requestAnimationFrame(() => router.push(`/social-posts/${post.id}`));
     },
     onError: (error) => notify.error(error, "Unable to save social post"),
   });

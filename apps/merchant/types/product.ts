@@ -13,10 +13,12 @@ export const SALES_CHANNELS = [
   "INSTAGRAM",
   "TIKTOK",
 ] as const;
+export const INVENTORY_TYPES = ["STOCKED", "NON_STOCKED"] as const;
 
 export type ProductStatus = SharedProductStatus;
 export type VariantStatus = (typeof VARIANT_STATUSES)[number];
 export type SalesChannel = SharedSalesChannel;
+export type InventoryType = (typeof INVENTORY_TYPES)[number];
 
 export type ProductVariant = {
   id: string;
@@ -51,6 +53,8 @@ export type Product = {
   price: string;
   currency: string;
   status: ProductStatus;
+  inventoryType: InventoryType;
+  trackStock: boolean;
   categoryId: string | null;
   category?: ProductCategory | null;
   createdAt: string;
@@ -162,6 +166,7 @@ export type ProductFormValues = {
   price: string;
   currency: string;
   status: ProductStatus;
+  inventoryType: InventoryType;
   categoryId: string;
   variants: ProductFormVariant[];
   media: ProductFormMedia[];
@@ -179,6 +184,7 @@ export type ProductPayload = {
   price: string;
   currency: string;
   status: ProductStatus;
+  inventoryType: InventoryType;
   categoryId?: string | null;
   variants: Array<{
     sku: string;

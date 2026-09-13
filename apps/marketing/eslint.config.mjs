@@ -1,3 +1,6 @@
 import nextConfig from "@repo/eslint-config/next";
+import { appBoundaries } from "@repo/eslint-config/app-boundaries";
 
-export default nextConfig;
+const marketingConfig = [...nextConfig, appBoundaries("marketing")];
+
+export default marketingConfig;

@@ -1,11 +1,12 @@
 "use client";
 
 import { Icon } from "@iconify/react";
-import { Tabs } from "@heroui/react";
+import { Button, Tabs } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import type { OrderStatus } from "@repo/types";
 
 import { OrdersPanel } from "@/components/storefront/orders-panel";
+import { useCustomerAuthModal } from "@/components/storefront/customer-auth-modal";
 import { getErrorMessage } from "@/lib/errors/api-error";
 import { useHasMounted } from "@/hooks/use-has-mounted";
 import {
@@ -13,6 +14,25 @@ import {
     getCustomerSession,
 } from "@/lib/storefront/customer-session";
 import { getCustomerOrders } from "@/lib/storefront/orders-data";
+
+function SignInToViewOrdersGate() {
+    const { openLogin } = useCustomerAuthModal();
+
+    return (
+        <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-default-200 py-12 text-center">
+            <div className="flex size-12 items-center justify-center rounded-full bg-accent/10 text-accent">
+                <Icon icon="solar:user-circle-outline" className="text-2xl" />
+            </div>
+            <p className="text-sm font-medium text-foreground">Sign in to see your orders</p>
+            <p className="max-w-xs text-sm text-default-500">
+                Once you&apos;re signed in, your order history will show up here.
+            </p>
+            <Button className="mt-1" onPress={openLogin} size="sm">
+                Sign in
+            </Button>
+        </div>
+    );
+}
 
 const CURRENT_STATUSES: OrderStatus[] = [
     "DRAFT",
@@ -39,14 +59,15 @@ export function OrdersTabs({ merchantSlug }: { merchantSlug: string }) {
     });
 
     const customerEmail = customerQuery.data?.user.email;
+    const isSignedIn = Boolean(customerEmail);
 
     const ordersQuery = useQuery({
         queryKey: ["storefront", "orders", merchantSlug, customerEmail],
         queryFn: () => getCustomerOrders(merchantSlug, { customerEmail: customerEmail!, limit: 50 }),
-        enabled: Boolean(customerEmail),
+        enabled: isSignedIn,
     });
 
-    if (!hasMounted || customerQuery.isPending || (Boolean(customerEmail) && ordersQuery.isPending)) {
+    if (!hasMounted || customerQuery.isPending || (isSignedIn && ordersQuery.isPending)) {
         return (
             <div className="flex flex-col gap-3">
                 {[0, 1, 2].map((i) => (
@@ -56,21 +77,7 @@ export function OrdersTabs({ merchantSlug }: { merchantSlug: string }) {
         );
     }
 
-    if (!customerEmail) {
-        return (
-            <div className="flex flex-col items-center gap-3 rounded-2xl border border-dashed border-default-200 py-12 text-center">
-                <div className="flex size-12 items-center justify-center rounded-full bg-accent/10 text-accent">
-                    <Icon icon="solar:user-circle-outline" className="text-2xl" />
-                </div>
-                <p className="text-sm font-medium text-foreground">Sign in to see your orders</p>
-                <p className="max-w-xs text-sm text-default-500">
-                    Once you&apos;re signed in, your order history will show up here.
-                </p>
-            </div>
-        );
-    }
-
-    if (ordersQuery.isError) {
+    if (isSignedIn && ordersQuery.isError) {
         return (
             <div className="rounded-2xl border border-danger/20 bg-danger-50 px-4 py-6 text-center text-sm text-danger">
                 {getErrorMessage(ordersQuery.error)}
@@ -78,7 +85,7 @@ export function OrdersTabs({ merchantSlug }: { merchantSlug: string }) {
         );
     }
 
-    const orders = ordersQuery.data?.items ?? [];
+    const orders = isSignedIn ? (ordersQuery.data?.items ?? []) : [];
     const currentOrders = orders.filter((order) => CURRENT_STATUSES.includes(order.status));
     const pastOrders = orders.filter((order) => PAST_STATUSES.includes(order.status));
 
@@ -100,21 +107,29 @@ export function OrdersTabs({ merchantSlug }: { merchantSlug: string }) {
             </Tabs.ListContainer>
 
             <Tabs.Panel className="pt-4" id="current">
-                <OrdersPanel
-                    emptyDescription="Orders being processed or on their way to you will show up here."
-                    emptyTitle="No current orders"
-                    merchantSlug={merchantSlug}
-                    orders={currentOrders}
-                />
+                {isSignedIn ? (
+                    <OrdersPanel
+                        emptyDescription="Orders being processed or on their way to you will show up here."
+                        emptyTitle="No current orders"
+                        merchantSlug={merchantSlug}
+                        orders={currentOrders}
+                    />
+                ) : (
+                    <SignInToViewOrdersGate />
+                )}
             </Tabs.Panel>
 
             <Tabs.Panel className="pt-4" id="past">
-                <OrdersPanel
-                    emptyDescription="Completed, cancelled, or refunded orders will show up here."
-                    emptyTitle="No past orders"
-                    merchantSlug={merchantSlug}
-                    orders={pastOrders}
-                />
+                {isSignedIn ? (
+                    <OrdersPanel
+                        emptyDescription="Completed, cancelled, or refunded orders will show up here."
+                        emptyTitle="No past orders"
+                        merchantSlug={merchantSlug}
+                        orders={pastOrders}
+                    />
+                ) : (
+                    <SignInToViewOrdersGate />
+                )}
             </Tabs.Panel>
         </Tabs>
     );

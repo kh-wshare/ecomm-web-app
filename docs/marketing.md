@@ -33,4 +33,4 @@ http://localhost:3003
 - Uses shared `@repo/ui` and HeroUI components.
 - Uses shared design tokens from `@repo/ui/styles.css`.
 - Uses an image-backed hero, restrained motion, and product-oriented sections.
-- Does not import from merchant, POS, or storefront app source.
+- Does not import from merchant or storefront app source.

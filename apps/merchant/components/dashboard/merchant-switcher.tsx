@@ -53,7 +53,10 @@ export function MerchantSwitcher({
       notify.success(
         `Switched to ${session.activeMerchant?.merchant.name ?? "merchant"}`,
       );
-      router.refresh();
+      // Defer past the toast's own view transition so it doesn't collide
+      // with the one the router navigation starts (causes an uncaught
+      // "Transition was aborted" DOMException).
+      requestAnimationFrame(() => router.refresh());
     },
   });
 

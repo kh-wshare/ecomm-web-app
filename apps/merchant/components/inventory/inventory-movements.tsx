@@ -1,11 +1,12 @@
 "use client";
 
+import { Input, Label } from "@heroui/react";
 import { useMemo, useState } from "react";
 import Link from "next/link";
 
 import { StockMovementTimeline } from "./inventory-shared";
 
-import { Button, Input, Select } from "@/components/products/product-controls";
+import { Button, Select } from "@/components/products/product-controls";
 import { useStockMovements } from "@/hooks/api/use-inventory";
 import { usePermissions } from "@/hooks/use-permissions";
 
@@ -102,16 +103,16 @@ export function InventoryMovements() {
         </p>
       </header>
 
-      <div className="grid gap-3 rounded-2xl border border-separator bg-surface p-4 sm:grid-cols-2 xl:grid-cols-4">
-        <Filter label="Product" value={productId} onChange={setProductId}>
+      <div className="grid gap-4 rounded-2xl border border-separator bg-surface p-4 sm:grid-cols-4">
+        <FilterSelect label="Product" value={productId} onChange={setProductId}>
           <option value="ALL">All products</option>
           {products.map((product) => (
             <option key={product.id} value={product.id}>
               {product.name} ({product.sku})
             </option>
           ))}
-        </Filter>
-        <Filter
+        </FilterSelect>
+        <FilterSelect
           label="Movement type"
           value={movementType}
           onChange={setMovementType}
@@ -122,7 +123,7 @@ export function InventoryMovements() {
               {toLabel(type)}
             </option>
           ))}
-        </Filter>
+        </FilterSelect>
         <DateField label="From" value={dateFrom} onChange={setDateFrom} />
         <DateField label="To" value={dateTo} onChange={setDateTo} />
       </div>
@@ -146,7 +147,7 @@ export function InventoryMovements() {
   );
 }
 
-function Filter({
+function FilterSelect({
   children,
   label,
   value,
@@ -158,18 +159,13 @@ function Filter({
   onChange: (value: string) => void;
 }) {
   return (
-    <label>
-      <span className="mb-1.5 block text-xs font-medium text-muted">
-        {label}
-      </span>
-      <Select
-        className="h-11 w-full rounded-xl border border-separator bg-background px-3 text-sm"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-      >
-        {children}
-      </Select>
-    </label>
+    <Select
+      label={label}
+      value={value}
+      onChange={(event) => onChange(event.target.value)}
+    >
+      {children}
+    </Select>
   );
 }
 
@@ -183,17 +179,16 @@ function DateField({
   onChange: (value: string) => void;
 }) {
   return (
-    <label>
-      <span className="mb-1.5 block text-xs font-medium text-muted">
-        {label}
-      </span>
+    <div className="flex flex-col gap-1">
+      <Label className="text-sm font-medium">{label}</Label>
       <Input
-        className="h-11 w-full rounded-xl border border-separator bg-background px-3 text-sm"
+        className="bg-surface-secondary text-muted"
         type="date"
         value={value}
+        variant="secondary"
         onChange={(event) => onChange(event.target.value)}
       />
-    </label>
+    </div>
   );
 }
 

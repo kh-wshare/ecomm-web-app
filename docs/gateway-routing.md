@@ -10,15 +10,13 @@ This is useful when you want URLs like these instead of raw app ports:
 
 ```txt
 http://localhost/merchant
-http://localhost/pos
 http://localhost
 ```
 
 Without the gateway, you would open the apps directly on their app ports:
 
 ```txt
-http://localhost:3000/merchant
-http://localhost:3001/pos
+http://localhost:3008/merchant
 http://localhost:3002
 http://localhost:3003
 ```
@@ -30,7 +28,6 @@ Run each frontend app from the repo root in its own terminal:
 ```bash
 pnpm marketing:dev
 pnpm merchant:dev
-pnpm pos:dev
 pnpm storefront:dev
 ```
 
@@ -39,7 +36,7 @@ pnpm storefront:dev
 This starts nginx in front of the host-run apps:
 
 ```bash
-docker compose -f docker-compose.prod.yml up nginx
+docker compose -f docker-compose.dev.yml up
 ```
 
 ## Route mapping
@@ -47,8 +44,7 @@ docker compose -f docker-compose.prod.yml up nginx
 The gateway routes requests like this:
 
 ```txt
-http://localhost/merchant -> http://localhost:3000/merchant
-http://localhost/pos      -> http://localhost:3001/pos
+http://localhost/merchant -> http://localhost:3008/merchant
 http://localhost          -> http://localhost:3002
 ```
 
@@ -64,7 +60,6 @@ The gateway also forwards Next.js static asset requests for the routed apps:
 
 ```txt
 /merchant/_next/static/* -> merchant app
-/pos/_next/static/*      -> POS app
 /_next/static/*          -> storefront app
 ```
 
@@ -74,7 +69,6 @@ Once the apps and nginx are running, check the routes directly in the browser or
 
 ```bash
 curl -I http://localhost/merchant
-curl -I http://localhost/pos
 curl -I http://localhost
 curl -I http://localhost:3003
 ```
@@ -82,7 +76,7 @@ curl -I http://localhost:3003
 You can also validate nginx itself from the running container:
 
 ```bash
-docker compose -f docker-compose.prod.yml exec nginx nginx -t
+docker compose -f docker-compose.dev.yml exec nginx nginx -t
 ```
 
 Production frontend deployment is documented in [Deployment](./deployment.md).

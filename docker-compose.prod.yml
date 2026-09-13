@@ -3,6 +3,7 @@ services:
     build:
       context: .
       dockerfile: apps/marketing/Dockerfile
+    image: ${REGISTRY_IMAGE:-ghcr.io/kh-wshare/ecomm-web-app}/marketing:${MARKETING_IMAGE_TAG:-latest}
     container_name: commerce_marketing
     restart: unless-stopped
     environment:
@@ -18,11 +19,12 @@ services:
     build:
       context: .
       dockerfile: apps/merchant/Dockerfile
+    image: ${REGISTRY_IMAGE:-ghcr.io/kh-wshare/ecomm-web-app}/merchant:${MERCHANT_IMAGE_TAG:-latest}
     container_name: commerce_merchant
     restart: unless-stopped
     environment:
       NODE_ENV: production
-      PORT: 3000
+      PORT: 3008
       HOSTNAME: 0.0.0.0
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:9001}
       NEXT_PUBLIC_DASHBOARD_URL: ${NEXT_PUBLIC_DASHBOARD_URL:-http://localhost/merchant}
@@ -35,26 +37,13 @@ services:
       NEXT_PUBLIC_TELEGRAM_CLIENT_ID: ${NEXT_PUBLIC_TELEGRAM_CLIENT_ID:-}
       NEXT_PUBLIC_TELEGRAM_REDIRECT_URI: ${NEXT_PUBLIC_TELEGRAM_REDIRECT_URI:-}
     ports:
-      - "3000:3000"
-
-  pos:
-    build:
-      context: .
-      dockerfile: apps/pos/Dockerfile
-    container_name: commerce_pos
-    restart: unless-stopped
-    environment:
-      NODE_ENV: production
-      PORT: 3001
-      HOSTNAME: 0.0.0.0
-      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:9001}
-    ports:
-      - "3001:3001"
+      - "3008:3008"
 
   storefront:
     build:
       context: .
       dockerfile: apps/storefront/Dockerfile
+    image: ${REGISTRY_IMAGE:-ghcr.io/kh-wshare/ecomm-web-app}/storefront:${STOREFRONT_IMAGE_TAG:-latest}
     container_name: commerce_storefront
     restart: unless-stopped
     environment:
@@ -77,12 +66,35 @@ services:
     image: nginx:1.27-alpine
     container_name: commerce_nginx
     restart: unless-stopped
+    environment:
+      GATEWAY_DOMAIN: ${GATEWAY_DOMAIN:-shop.example.com}
+      MARKETING_DOMAIN: ${MARKETING_DOMAIN:-www.example.com}
     ports:
       - "${GATEWAY_PORT:-80}:80"
+      - "${GATEWAY_TLS_PORT:-443}:443"
     volumes:
-      - ./deploy/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./deploy/nginx/templates:/etc/nginx/templates:ro
+      - certbot_conf:/etc/letsencrypt:ro
+      - certbot_www:/var/www/certbot:ro
+    # Periodically reload so renewed certificates (picked up by the certbot
+    # service below) get picked up without a manual restart.
+    command: >
+      /bin/sh -c "while :; do sleep 6h & wait $${!}; nginx -s reload; done & exec nginx -g 'daemon off;'"
     depends_on:
       - marketing
       - merchant
-      - pos
       - storefront
+
+  certbot:
+    image: certbot/certbot:latest
+    container_name: commerce_certbot
+    restart: unless-stopped
+    volumes:
+      - certbot_conf:/etc/letsencrypt
+      - certbot_www:/var/www/certbot
+    entrypoint: >
+      /bin/sh -c "trap exit TERM; while :; do certbot renew --webroot -w /var/www/certbot --quiet; sleep 12h & wait $${!}; done;"
+
+volumes:
+  certbot_conf:
+  certbot_www:

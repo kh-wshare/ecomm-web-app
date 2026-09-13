@@ -20,6 +20,7 @@ import Link from 'next/link';
 import { Icon } from '@iconify/react';
 
 import { ProductStatusBadge } from './product-status-badge';
+import { ProductInventoryTypeBadge } from './product-inventory-type-badge';
 
 import { Button, Select } from './product-controls';
 import type {
@@ -206,7 +207,7 @@ export function ProductList() {
           <Table.ScrollContainer>
             <Table.Content
               aria-label="Products"
-              className="min-w-[1120px] table-fixed text-left text-sm"
+              className="min-w-[1240px] table-fixed text-left text-sm"
               selectedKeys={new Set(selected)}
               selectionMode={canDelete ? 'multiple' : 'none'}
               onSelectionChange={updateSelection}
@@ -241,6 +242,12 @@ export function ProductList() {
                   id="channels"
                 >
                   Channels
+                </Table.Column>
+                <Table.Column
+                  className="w-[120px] px-4 py-3 font-medium"
+                  id="inventoryType"
+                >
+                  Inventory
                 </Table.Column>
                 <Table.Column
                   className="w-[140px] px-4 py-3 font-medium"
@@ -496,6 +503,9 @@ function ProductRow({
         ) : (
           <span className="text-xs text-muted">Hidden</span>
         )}
+      </Table.Cell>
+      <Table.Cell className="px-4 py-4">
+        <ProductInventoryTypeBadge inventoryType={product.inventoryType} />
       </Table.Cell>
       <Table.Cell className="px-4 py-4">
         {showStock ? (
