@@ -40,11 +40,8 @@ export function StorefrontShell({
   const isProfileItemRoute = Boolean(pathname?.startsWith(`${basePath}/profile/`));
   const isCartRoute = Boolean(pathname?.startsWith(`${basePath}/cart`));
   const { cart, itemCount } = useCart(merchant.slug);
-  const cartCurrency = cart.items[0]?.currency ?? "USD";
-  const cartSubtotal = cart.items.reduce(
-    (total, item) => total + Number(item.price) * item.quantity,
-    0,
-  );
+  const cartCurrency = cart?.currency ?? "USD";
+  const cartSubtotal = cart?.subtotalAmount ?? 0;
   const showCartRow = itemCount > 0 && !isProfileRoute && !isCartRoute;
   const cartModal = useOverlayState({ defaultOpen: false });
   const activeNavIndex = isHomeActive ? 0 : isSearchActive ? 1 : isOrdersActive ? 2 : -1;

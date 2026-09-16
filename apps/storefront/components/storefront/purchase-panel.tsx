@@ -3,19 +3,15 @@
 import { useRef, useState } from "react";
 import { Icon } from "@iconify/react";
 import { Alert, Button, Card, Chip, Input } from "@heroui/react";
-import { useMutation } from "@tanstack/react-query";
 import { useRouter } from "next/navigation";
 
 import type { PublicProduct } from "@/types/storefront";
 import type { ThemeConfig } from "@/types/theme";
 import { env } from "@/lib/env";
-import { createCheckoutSession } from "@/lib/checkout/checkout-data";
-import { checkoutStorage } from "@/lib/checkout/checkout-storage";
 import { formatCurrency } from "@/lib/formatters/currency";
 import { getErrorMessage } from "@/lib/errors/api-error";
 import { radiusValue } from "@/lib/theme/radius";
-import { getCustomerSession } from "@/lib/storefront/customer-session";
-import { cartStore } from "@/lib/cart/cart-storage";
+import { useAddToCart } from "@/lib/cart/use-cart";
 
 export function PurchasePanel({
   config,
@@ -55,64 +51,29 @@ export function PurchasePanel({
 
   const price = selectedVariant?.price ?? product.price;
 
-  const checkout = useMutation({
-    mutationFn: async () => {
-      const customer = (await getCustomerSession())?.user;
+  const addToCart = useAddToCart(merchantSlug);
 
-      return createCheckoutSession({
-        merchantSlug,
-        ...(customer
-          ? {
-              customerEmail: customer.email,
-              customerId: customer.id,
-              customerName: customer.fullName,
-              ...(customer.phone
-                ? { customerPhone: customer.phone }
-                : {}),
-            }
-          : {}),
-        sourceChannel: "WEBSITE",
-        items: [
-          {
-            productId: product.id,
-            ...(selectedVariant
-              ? { variantId: selectedVariant.id }
-              : {}),
-            quantity,
-          },
-        ],
-      });
-    },
-
-    onSuccess: (session) => {
-      checkoutStorage.set(session.id, {
-        token: session.checkoutToken,
-        merchantSlug,
-        productSlug: product.slug,
-      });
-
-      router.push(`/checkout/${session.id}`);
-    },
-  });
+  const cartLine = {
+    productId: product.id,
+    quantity,
+    ...(selectedVariant ? { variantId: selectedVariant.id } : {}),
+  };
 
   const handleAddToCart = () => {
-    cartStore.addItem(merchantSlug, {
-      productId: product.id,
-      ...(selectedVariant ? { variantId: selectedVariant.id } : {}),
-      productSlug: product.slug,
-      name: product.name,
-      ...(selectedVariant ? { variantName: selectedVariant.name } : {}),
-      ...(product.media.find((media) => media.type === "IMAGE")
-        ? { image: product.media.find((media) => media.type === "IMAGE")!.url }
-        : {}),
-      sku: selectedVariant?.sku ?? product.sku,
-      price: selectedVariant?.price ?? product.price,
-      currency: product.currency,
-      quantity,
+    addToCart.mutate(cartLine, {
+      onSuccess: () => {
+        setJustAddedToCart(true);
+        window.setTimeout(() => setJustAddedToCart(false), 1500);
+      },
     });
+  };
 
-    setJustAddedToCart(true);
-    window.setTimeout(() => setJustAddedToCart(false), 1500);
+  // Buying now still goes through the cart: the shipping address and delivery
+  // method are chosen there, and an order cannot be placed without them.
+  const handleBuyNow = () => {
+    addToCart.mutate(cartLine, {
+      onSuccess: () => router.push(`/${merchantSlug}/cart`),
+    });
   };
 
   const shareUrl = `${env.NEXT_PUBLIC_STOREFRONT_URL}/${merchantSlug}/products/${product.slug}`;
@@ -221,7 +182,7 @@ export function PurchasePanel({
           <fieldset className="mt-6 border-t border-current/10 pt-5 sm:mt-7 sm:pt-6">
             <div className="flex items-center justify-between gap-3">
               <legend className="text-sm font-semibold">
-                Choose an option
+                Choose an option ({product.variants.length})
               </legend>
 
               {shouldScrollVariants && (
@@ -273,7 +234,7 @@ export function PurchasePanel({
               <div
                 className={
                   shouldScrollVariants
-                    ? "grid auto-cols-[minmax(145px,75vw)] grid-flow-col gap-3 sm:auto-cols-[minmax(160px,1fr)]"
+                    ? "grid grid-cols-2 gap-3 sm:grid-cols-3"
                     : "grid grid-cols-2 gap-3"
                 }
               >
@@ -379,7 +340,7 @@ export function PurchasePanel({
               font-bold
               sm:px-6
             "
-            isDisabled={!canBuy || checkout.isPending}
+            isDisabled={!canBuy || addToCart.isPending}
             variant="secondary"
             style={{
               borderRadius: radiusValue(
@@ -403,31 +364,31 @@ export function PurchasePanel({
         {/* Buy now */}
         <Button
           className="mt-2 h-12 w-full text-sm font-bold text-white sm:mt-3"
-          isDisabled={!canBuy || checkout.isPending}
+          isDisabled={!canBuy || addToCart.isPending}
           variant="primary"
           style={{
             backgroundColor: config.colors.primary,
             borderRadius: radiusValue(config.layout.borderRadius),
           }}
           type="button"
-          onPress={() => checkout.mutate()}
+          onPress={handleBuyNow}
         >
           <Icon className="size-4 shrink-0" icon="gravity-ui:shopping-cart" />
           <span className="truncate">
-            {checkout.isPending ? "Reserving..." : "Buy now"}
+            {addToCart.isPending ? "Adding..." : "Buy now"}
           </span>
         </Button>
 
         {/* Checkout error */}
-        {checkout.isError && (
+        {addToCart.isError && (
           <Alert className="mt-4" status="danger">
             <Alert.Content>
               <Alert.Title>
-                We could not start checkout
+                We could not add this to your cart
               </Alert.Title>
 
               <Alert.Description>
-                {getErrorMessage(checkout.error)}
+                {getErrorMessage(addToCart.error)}
               </Alert.Description>
             </Alert.Content>
           </Alert>

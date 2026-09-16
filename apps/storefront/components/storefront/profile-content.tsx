@@ -125,21 +125,28 @@ export function ProfileContent({ merchantSlug }: ProfileContentProps) {
             </Link>
 
             {/* Menu listing */}
-            <nav className="mt-6 flex flex-col gap-1 rounded-3xl border border-neutral-200 p-2 dark:border-neutral-700">
+            <nav className="mt-6 overflow-hidden rounded-3xl border border-neutral-200 dark:border-neutral-700">
                 {menuItems(merchantSlug).map((item) => (
                     <Link
-                        className="flex items-center gap-3 rounded-2xl px-3 py-3 transition-colors hover:bg-neutral-50 active:scale-[0.99] dark:hover:bg-neutral-800/50"
+                        className="group flex items-center gap-3.5 pl-3 transition-colors hover:bg-neutral-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-accent/40 active:bg-neutral-100 dark:hover:bg-neutral-800/50 dark:active:bg-neutral-800"
                         href={item.href}
                         key={item.key}
                     >
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-accent/10 text-accent">
+                        <span className="flex size-10 shrink-0 items-center justify-center rounded-2xl bg-accent/10 text-accent transition-transform duration-200 ease-out group-hover:scale-105 group-active:scale-95">
                             <Icon icon={item.icon} className="size-5" />
                         </span>
-                        <span className="min-w-0 flex-1">
-                            <span className="block text-sm font-medium text-foreground">{item.label}</span>
-                            <span className="block truncate text-xs text-default-500">{item.description}</span>
+
+                        <span className="flex min-w-0 flex-1 items-center gap-3 border-b border-neutral-100 py-3.5 pr-3 group-last:border-b-0 dark:border-neutral-800">
+                            <span className="min-w-0 flex-1">
+                                <span className="block text-sm font-semibold text-foreground">{item.label}</span>
+                                <span className="mt-0.5 block truncate text-xs text-default-500">{item.description}</span>
+                            </span>
+
+                            <Icon
+                                icon="solar:alt-arrow-right-linear"
+                                className="size-4 shrink-0 text-default-300 transition-transform duration-200 ease-out group-hover:translate-x-0.5 group-hover:text-default-400"
+                            />
                         </span>
-                        <Icon icon="solar:alt-arrow-right-linear" className="size-4 shrink-0 text-default-300" />
                     </Link>
                 ))}
             </nav>

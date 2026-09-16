@@ -2,21 +2,16 @@
 
 import { useEffect, useRef } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Icon } from "@iconify/react";
 import { Alert, Button, Modal, useOverlayState } from "@heroui/react";
-import { useMutation } from "@tanstack/react-query";
 
 import type { PublicMerchant } from "@/types/storefront";
+import type { CartLine } from "@/types/cart";
 import { normalizeThemeConfig } from "@/lib/theme/theme-data";
 import { radiusValue } from "@/lib/theme/radius";
 import { formatCurrency } from "@/lib/formatters/currency";
 import { getErrorMessage } from "@/lib/errors/api-error";
-import { createCheckoutSession } from "@/lib/checkout/checkout-data";
-import { checkoutStorage } from "@/lib/checkout/checkout-storage";
-import { getCustomerSession } from "@/lib/storefront/customer-session";
-import { cartStore, type CartItem } from "@/lib/cart/cart-storage";
-import { useCart } from "@/lib/cart/use-cart";
+import { useCart, useUpdateCartItem } from "@/lib/cart/use-cart";
 
 export function CartModal({
   config,
@@ -27,62 +22,22 @@ export function CartModal({
   merchant: PublicMerchant;
   state: ReturnType<typeof useOverlayState>;
 }) {
-  const router = useRouter();
   const { cart } = useCart(merchant.slug);
+  const updateItem = useUpdateCartItem(merchant.slug);
+  const lines = cart?.items ?? [];
 
   // Auto-close the sheet if the cart empties out while it's open (e.g. the
   // user removes the last item). Opening it on an already-empty cart is a
   // normal state (shows the empty view) — only the >0 → 0 transition closes it.
-  const previousItemCountRef = useRef(cart.items.length);
+  const previousItemCountRef = useRef(lines.length);
   useEffect(() => {
     const previousCount = previousItemCountRef.current;
-    previousItemCountRef.current = cart.items.length;
+    previousItemCountRef.current = lines.length;
 
-    if (state.isOpen && previousCount > 0 && cart.items.length === 0) {
+    if (state.isOpen && previousCount > 0 && lines.length === 0) {
       state.close();
     }
-  }, [cart.items.length, state]);
-
-  const subtotal = cart.items.reduce(
-    (total, item) => total + Number(item.price) * item.quantity,
-    0,
-  );
-  const currency = cart.items[0]?.currency ?? "USD";
-
-  const checkout = useMutation({
-    mutationFn: async () => {
-      const customer = (await getCustomerSession())?.user;
-
-      return createCheckoutSession({
-        merchantSlug: merchant.slug,
-        ...(customer
-          ? {
-              customerEmail: customer.email,
-              customerId: customer.id,
-              customerName: customer.fullName,
-              ...(customer.phone ? { customerPhone: customer.phone } : {}),
-            }
-          : {}),
-        sourceChannel: "WEBSITE",
-        items: cart.items.map((item) => ({
-          productId: item.productId,
-          ...(item.variantId ? { variantId: item.variantId } : {}),
-          quantity: item.quantity,
-        })),
-      });
-    },
-
-    onSuccess: (session) => {
-      checkoutStorage.set(session.id, {
-        token: session.checkoutToken,
-        merchantSlug: merchant.slug,
-      });
-
-      cartStore.clear(merchant.slug);
-      state.close();
-      router.push(`/checkout/${session.id}`);
-    },
-  });
+  }, [lines.length, state]);
 
   return (
     <Modal isOpen={state.isOpen} onOpenChange={state.setOpen}>
@@ -98,7 +53,7 @@ export function CartModal({
             </Modal.Header>
 
             <Modal.Body>
-              {cart.items.length === 0 ? (
+              {lines.length === 0 ? (
                 <div className="flex flex-col items-center gap-3 py-8 text-center">
                   <div className="flex size-12 items-center justify-center rounded-full bg-accent/10 text-accent">
                     <Icon icon="solar:cart-large-2-linear" className="text-xl" />
@@ -116,12 +71,16 @@ export function CartModal({
               ) : (
                 <>
                   <div className="flex max-h-72 flex-col gap-3 overflow-y-auto">
-                    {cart.items.map((item) => (
+                    {lines.map((line) => (
                       <CartModalRow
-                        item={item}
-                        key={`${item.productId}:${item.variantId ?? ""}`}
-                        merchantSlug={merchant.slug}
-                        onNavigate={state.close}
+                        currency={cart?.currency ?? "USD"}
+                        isPending={updateItem.isPending}
+                        key={line.id ?? `${line.productId}:${line.variantId ?? ""}`}
+                        line={line}
+                        onQuantityChange={(quantity) => {
+                          if (!line.id) return;
+                          updateItem.mutate({ itemId: line.id, quantity });
+                        }}
                       />
                     ))}
                   </div>
@@ -133,14 +92,21 @@ export function CartModal({
                     }}
                   >
                     <span>Subtotal</span>
-                    <span>{formatCurrency(subtotal, currency)}</span>
+                    <span>
+                      {formatCurrency(
+                        cart?.subtotalAmount ?? 0,
+                        cart?.currency ?? "USD",
+                      )}
+                    </span>
                   </div>
 
-                  {checkout.isError && (
+                  {updateItem.isError && (
                     <Alert className="mt-4" status="danger">
                       <Alert.Content>
-                        <Alert.Title>We could not start checkout</Alert.Title>
-                        <Alert.Description>{getErrorMessage(checkout.error)}</Alert.Description>
+                        <Alert.Title>We could not update your cart</Alert.Title>
+                        <Alert.Description>
+                          {getErrorMessage(updateItem.error)}
+                        </Alert.Description>
                       </Alert.Content>
                     </Alert>
                   )}
@@ -148,21 +114,25 @@ export function CartModal({
               )}
             </Modal.Body>
 
-            {cart.items.length > 0 && (
+            {lines.length > 0 && (
               <Modal.Footer>
-                <Button
-                  className="h-12 w-full text-sm font-bold text-white"
-                  isDisabled={checkout.isPending}
-                  style={{
-                    backgroundColor: config.colors.primary,
-                    borderRadius: radiusValue(config.layout.borderRadius),
-                  }}
-                  type="button"
-                  variant="primary"
-                  onPress={() => checkout.mutate()}
+                <Link
+                  className="w-full"
+                  href={`/${merchant.slug}/cart`}
+                  onClick={state.close}
                 >
-                  {checkout.isPending ? "Preparing checkout..." : "Checkout"}
-                </Button>
+                  <Button
+                    className="h-12 w-full text-sm font-bold text-white"
+                    style={{
+                      backgroundColor: config.colors.primary,
+                      borderRadius: radiusValue(config.layout.borderRadius),
+                    }}
+                    type="button"
+                    variant="primary"
+                  >
+                    Checkout
+                  </Button>
+                </Link>
               </Modal.Footer>
             )}
           </Modal.Dialog>
@@ -173,49 +143,37 @@ export function CartModal({
 }
 
 function CartModalRow({
-  item,
-  merchantSlug,
-  onNavigate,
+  currency,
+  isPending,
+  line,
+  onQuantityChange,
 }: {
-  item: CartItem;
-  merchantSlug: string;
-  onNavigate?: () => void;
+  currency: string;
+  isPending: boolean;
+  line: CartLine;
+  onQuantityChange: (quantity: number) => void;
 }) {
-  const target = { productId: item.productId, variantId: item.variantId };
-  const lineTotal = Number(item.price) * item.quantity;
+  // The cart schema marks the line id optional; without one the API gives us no
+  // way to address this line, so its controls stay disabled rather than failing.
+  const canEdit = Boolean(line.id) && !isPending;
 
   return (
     <div className="flex items-center gap-3">
-      <Link
-        className="block size-14 shrink-0 overflow-hidden rounded-xl bg-black/5 bg-cover bg-center"
-        href={`/${merchantSlug}/products/${item.productSlug}`}
-        style={item.image ? { backgroundImage: `url("${item.image}")` } : undefined}
-        onClick={onNavigate}
-      />
-
       <div className="min-w-0 flex-1">
-        <Link
-          className="line-clamp-1 text-sm font-semibold"
-          href={`/${merchantSlug}/products/${item.productSlug}`}
-          onClick={onNavigate}
-        >
-          {item.name}
-        </Link>
-        <p className="mt-0.5 text-xs text-default-500">
-          {item.variantName ? `${item.variantName} · ` : ""}
-          {item.sku}
-        </p>
+        <p className="line-clamp-1 text-sm font-semibold">{line.name}</p>
+        <p className="mt-0.5 text-xs text-default-500">{line.sku}</p>
         <p className="mt-1 text-sm font-semibold">
-          {formatCurrency(lineTotal, item.currency)}
+          {formatCurrency(line.totalPrice, currency)}
         </p>
       </div>
 
       <div className="flex shrink-0 flex-col items-end gap-2">
         <button
-          aria-label={`Remove ${item.name} from cart`}
-          className="text-default-400 transition-colors hover:text-danger"
+          aria-label={`Remove ${line.name} from cart`}
+          className="text-default-400 transition-colors hover:text-danger disabled:opacity-40"
+          disabled={!canEdit}
           type="button"
-          onClick={() => cartStore.removeItem(merchantSlug, target)}
+          onClick={() => onQuantityChange(0)}
         >
           <Icon icon="solar:trash-bin-minimalistic-outline" className="size-4" />
         </button>
@@ -224,22 +182,21 @@ function CartModalRow({
           <button
             aria-label="Decrease quantity"
             className="grid size-6 place-items-center rounded-full border border-default-200 disabled:opacity-40"
-            disabled={item.quantity <= 1}
+            disabled={!canEdit || line.quantity <= 1}
             type="button"
-            onClick={() =>
-              cartStore.setQuantity(merchantSlug, target, item.quantity - 1)
-            }
+            onClick={() => onQuantityChange(line.quantity - 1)}
           >
             <Icon icon="gravity-ui:minus" className="size-3" />
           </button>
-          <span className="w-4 text-center text-xs font-medium">{item.quantity}</span>
+          <span className="w-4 text-center text-xs font-medium">
+            {line.quantity}
+          </span>
           <button
             aria-label="Increase quantity"
-            className="grid size-6 place-items-center rounded-full border border-default-200"
+            className="grid size-6 place-items-center rounded-full border border-default-200 disabled:opacity-40"
+            disabled={!canEdit}
             type="button"
-            onClick={() =>
-              cartStore.setQuantity(merchantSlug, target, item.quantity + 1)
-            }
+            onClick={() => onQuantityChange(line.quantity + 1)}
           >
             <Icon icon="gravity-ui:plus" className="size-3" />
           </button>

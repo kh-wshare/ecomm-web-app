@@ -35,6 +35,13 @@ export const queryKeys = {
     list: (filters: Record<string, unknown> = {}) =>
       [...queryKeys.categories.all, "list", filters] as const,
   },
+  deliveryMethods: {
+    all: ["delivery-methods"] as const,
+    detail: (deliveryMethodId: string) =>
+      [...queryKeys.deliveryMethods.all, "detail", deliveryMethodId] as const,
+    list: (filters: Record<string, unknown> = {}) =>
+      [...queryKeys.deliveryMethods.all, "list", filters] as const,
+  },
   inventory: {
     all: ["inventory"] as const,
     detail: (productId: string) =>
@@ -76,6 +83,15 @@ export const queryKeys = {
       [...queryKeys.products.all, "detail", productId] as const,
     list: (filters: Record<string, unknown> = {}) =>
       [...queryKeys.products.all, "list", filters] as const,
+  },
+  shipments: {
+    all: ["shipments"] as const,
+    detail: (shipmentId: string) =>
+      [...queryKeys.shipments.all, "detail", shipmentId] as const,
+    forOrder: (orderId: string) =>
+      [...queryKeys.shipments.all, "order", orderId] as const,
+    list: (filters: Record<string, unknown> = {}) =>
+      [...queryKeys.shipments.all, "list", filters] as const,
   },
   socialPosts: {
     all: ["social-posts"] as const,

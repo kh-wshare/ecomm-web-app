@@ -26,6 +26,7 @@ export const merchantNavigation: NavigationGroup[] = [
     items: [
       { href: "/dashboard", icon: "grid", label: "Overview" },
       { href: "/orders", icon: "orders", label: "Orders" },
+      { href: "/shipments", icon: "truck", label: "Shipments" },
       {
         href: "/payments/transactions",
         icon: "card",
@@ -55,6 +56,11 @@ export const merchantNavigation: NavigationGroup[] = [
         href: "/settings/branches",
         icon: "location",
         label: "Locations",
+      },
+      {
+        href: "/settings/delivery",
+        icon: "truck",
+        label: "Delivery",
       },
     ],
   },

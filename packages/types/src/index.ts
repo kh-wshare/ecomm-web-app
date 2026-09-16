@@ -40,6 +40,8 @@ export type PermissionCode =
   | 'payments.manage'
   | 'storefront.manage'
   | 'social.manage'
+  | 'delivery.manage'
+  | 'shipments.manage'
   | 'pos.access'
   | 'pos.sale.create';
 

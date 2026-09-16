@@ -16,6 +16,7 @@ const icons = {
   settings: "solar:settings-bold-duotone",
   share: "solar:share-bold-duotone",
   tag: "solar:tag-bold-duotone",
+  truck: "solar:delivery-bold-duotone",
   user: "solar:user-rounded-bold-duotone",
 };
 

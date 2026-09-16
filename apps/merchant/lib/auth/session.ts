@@ -110,9 +110,27 @@ function normalizePermissions(permissions: readonly string[]) {
       case "order.update":
         normalized.add("orders.update");
         break;
+      case "delivery.create":
+      case "delivery.delete":
+      case "delivery.read":
+      case "delivery.update":
+      case "delivery_method.create":
+      case "delivery_method.delete":
+      case "delivery_method.read":
+      case "delivery_method.update":
+      case "delivery_zone.create":
+      case "delivery_zone.delete":
+      case "delivery_zone.update":
+        normalized.add("delivery.manage");
+        break;
       case "payment.provider_manage":
       case "payment.read":
         normalized.add("payments.manage");
+        break;
+      case "shipment.create":
+      case "shipment.read":
+      case "shipment.update":
+        normalized.add("shipments.manage");
         break;
       case "product.create":
         normalized.add("products.create");
@@ -137,6 +155,14 @@ function normalizePermissions(permissions: readonly string[]) {
     }
   });
 
+  // Delivery methods and shipments are new resources, and the codes the API
+  // grants for them are not confirmed yet. Until they are, derive access from
+  // the permission that already implies it — otherwise every existing account
+  // would find the new screens locked, because role permissions are issued
+  // when a merchant is created and are never backfilled.
+  if (normalized.has("storefront.manage")) normalized.add("delivery.manage");
+  if (normalized.has("orders.update")) normalized.add("shipments.manage");
+
   return [...normalized];
 }
 
@@ -154,6 +180,8 @@ function isSharedPermission(permission: string): permission is PermissionCode {
     "payments.manage",
     "storefront.manage",
     "social.manage",
+    "delivery.manage",
+    "shipments.manage",
     "pos.access",
     "pos.sale.create",
   ].includes(permission);

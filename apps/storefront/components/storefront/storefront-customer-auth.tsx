@@ -1,9 +1,9 @@
 "use client";
 
-import { Avatar } from "@heroui/react";
 import { useQuery } from "@tanstack/react-query";
 import { Icon } from "@iconify/react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 import { useCustomerAuthModal } from "@/components/storefront/customer-auth-modal";
 import {
@@ -11,8 +11,16 @@ import {
   getCustomerSession,
 } from "@/lib/storefront/customer-session";
 
+const buttonClassName =
+  "group flex size-11 items-center justify-center rounded-full border transition-[background-color,border-color,color] duration-200 ease-out";
+
+const iconClassName =
+  "size-5 transition-transform duration-200 ease-out group-hover:scale-110";
+
 export function StorefrontCustomerAuth({ slug }: { slug: string }) {
   const { openLogin } = useCustomerAuthModal();
+  const pathname = usePathname();
+  const isActive = Boolean(pathname?.startsWith(`/${slug}/profile`));
 
   const customerQuery = useQuery({
     queryKey: customerSessionQueryKey,
@@ -21,50 +29,45 @@ export function StorefrontCustomerAuth({ slug }: { slug: string }) {
 
   const customer = customerQuery.data;
 
-  /**
-   * Logged in
-   */
+  const style = isActive
+    ? {
+        backgroundColor:
+          "color-mix(in srgb, var(--store-accent) 14%, transparent)",
+        borderColor:
+          "color-mix(in srgb, var(--store-accent) 32%, transparent)",
+        color: "var(--store-accent)",
+      }
+    : {
+        backgroundColor: "transparent",
+        borderColor: "color-mix(in srgb, currentColor 12%, transparent)",
+      };
+
   if (customer) {
-    const initials = getInitials(customer.user.fullName);
-
     return (
-      <Link href={`/${slug}/profile`}>
-        <Avatar size="md">
-          <Avatar.Image
-            alt="Blue"
-            src="https://heroui-assets.nyc3.cdn.digitaloceanspaces.com/avatars/blue.jpg"
-          />
-
-          <Avatar.Fallback>{initials}</Avatar.Fallback>
-        </Avatar>
+      <Link
+        aria-current={isActive ? "page" : undefined}
+        aria-label={`Your profile, signed in as ${customer.user.fullName}`}
+        className={buttonClassName}
+        href={`/${slug}/profile`}
+        style={style}
+      >
+        <Icon
+          className={iconClassName}
+          icon={isActive ? "solar:user-bold" : "solar:user-linear"}
+        />
       </Link>
     );
   }
 
-  /**
-   * Logged out
-   */
   return (
-    <Avatar size="md" onClick={openLogin}>
-      <Avatar.Fallback>
-        <Icon
-          icon="solar:user-broken"
-          className="size-6 transition-transform duration-200 group-hover:scale-110"
-        />
-      </Avatar.Fallback>
-    </Avatar>
+    <button
+      aria-label="Sign in to your account"
+      className={buttonClassName}
+      style={style}
+      type="button"
+      onClick={openLogin}
+    >
+      <Icon className={iconClassName} icon="solar:user-linear" />
+    </button>
   );
-}
-
-function getInitials(name?: string) {
-  if (!name) {
-    return "?";
-  }
-
-  return name
-    .trim()
-    .split(/\s+/)
-    .slice(0, 2)
-    .map((part) => part.charAt(0).toUpperCase())
-    .join("");
 }

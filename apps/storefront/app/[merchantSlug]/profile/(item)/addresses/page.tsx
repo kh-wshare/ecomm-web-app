@@ -41,7 +41,7 @@ export default async function ProfileAddressesPage({
     return (
         <main className="pb-10 pt-6">
             <div>
-                <AddressesPanel />
+                <AddressesPanel merchantSlug={merchantSlug} />
             </div>
         </main>
     );

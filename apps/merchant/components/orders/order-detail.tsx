@@ -7,6 +7,8 @@ import Link from "next/link";
 
 import { OrderStatusBadge } from "./order-status-badge";
 
+import { OrderShipmentsPanel } from "@/components/shipments/order-shipments-panel";
+
 import type { Order } from "@/types/order";
 import { usePermissions } from "@/hooks/use-permissions";
 import { formatCurrency } from "@/lib/formatters/currency";
@@ -252,6 +254,8 @@ export function OrderDetail({ orderId }: { orderId: string }) {
               </p>
             )}
           </Panel>
+
+          <OrderShipmentsPanel order={order} />
         </div>
 
         <div className="space-y-6">

@@ -8,6 +8,7 @@ import {
 
 const allowedPrefixes = new Set([
   'branches',
+  'delivery-methods',
   'inventory',
   'merchant',
   'notifications',
@@ -15,6 +16,7 @@ const allowedPrefixes = new Set([
   'payments',
   'categories',
   'products',
+  'shipments',
   'social-posts',
   'themes',
 ]);
